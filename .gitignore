@@ -1,0 +1,17 @@
+*~
+*.syms
+CMakeCache.txt
+CMakeFiles/
+build/
+cmake_install.cmake
+/.settings/
+/.kdev4/
+/nbproject/private/
+*.obj
+*.out
+*.map
+*.hex
+tags
+build.log
+*.embed.h
+init/main.asm

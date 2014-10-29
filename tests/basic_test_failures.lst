@@ -1,0 +1,412 @@
+Khronos Basic Test Failures
+===========================
+Khronos Test Version: OpenCL 1.1: April 4, 2010.
+
+Usage:  
+% cd opencl_conformance/test_conformance/basic
+% test_basic <test-name>
+
+
+<test-name>: 
+Failure Mode:
+Analysis:
+
+hiloeo
+======
+Failure Mode:   
+------------
+Runs out of system memory, and crashes the test.  
+However, the test is passing all of the subtests before it crashes.
+
+Analysis:
+--------
+valgrind analysis on shamrock showed huge memory leaks around creating and
+deleting programs, which were due to LLVM objects not getting freed.  This
+could either be a usage problem, or a bug in LLVM MCJIT execution engine.
+
+
+async_copy_global_to_local.txt
+async_copy_local_to_global.txt
+async_strided_copy_global_to_local.txt
+async_strided_copy_local_to_global.txt
+======================================
+Failure Mode:   
+------------
+All of the above 4 tests fail in the same way:  Due to the Khronos generated
+CL file not being able to compile.  These also fail the same way on 
+Keystone EVM (which doesn't use MCJIT). 
+
+async_copy_global_to_local...
+Testing char
+program.cl:9:153: error: used type 'event_t' where arithmetic or pointer type is required
+
+ERROR: clBuildProgram failed! (CL_BUILD_PROGRAM_FAILURE from /home/gpitney/opencl_conformance/test_common/harness/kernelHelpers.c:35)
+Original source is: ------------
+
+__kernel void test_fn( const __global char *src, __global char *dst, __local char *localBuffer, int copiesPerWorkgroup, int copiesPerWorkItem )
+{
+ int i;
+ for(i=0; i<copiesPerWorkItem; i++)
+	 localBuffer[ get_local_id( 0 )*copiesPerWorkItem+i ] = (char)(char)0;
+	barrier( CLK_LOCAL_MEM_FENCE );
+	event_t event;
+	event = async_work_group_copy( (__local char*)localBuffer, (__global const char*)(src+copiesPerWorkgroup*get_group_id(0)), (size_t)copiesPerWorkgroup, (event_t)0 );
+	wait_group_events( 1, &event );
+ for(i=0; i<copiesPerWorkItem; i++)
+  dst[ get_global_id( 0 )*copiesPerWorkItem+i ] = localBuffer[ get_local_id( 0 )*copiesPerWorkItem+i ];
+}
+Build not successful for device "Intel(R) Core(TM) i7-2620M CPU @ 2.70GHz", status: CL_BUILD_ERROR
+Build log for device "Intel(R) Core(TM) i7-2620M CPU @ 2.70GHz" is: ------------
+program.cl:9:153: error: used type 'event_t' where arithmetic or pointer type is required
+
+Analysis:
+--------
+Note the cast of (event_t)0 in the kernel above.
+Per the discussion here: http://comments.gmane.org/gmane.comp.compilers.clang.scm/93008 , it appears the spec is vague on this point, but the Khronos 
+test nevertheless expects the cast to compile.   
+
+So, it seems a clang patch for OpenCL event_t casts of zero may be required.
+
+kernel_memory_alignment_constant.txt
+====================================
+Failure Mode:   
+------------
+This fails due to inability to compile a Khronos test generated CL program.
+
+
+kernel_memory_alignment_constant...
+Device version string: "OpenCL 1.1 "
+Testing char...
+        Testing parameter kernel...
+        Testing constant kernel...
+program.cl:2:17: error: variable in constant address space must be initialized
+program.cl:3:18: error: variable in constant address space must be initialized
+program.cl:4:18: error: variable in constant address space must be initialized
+program.cl:5:18: error: variable in constant address space must be initialized
+program.cl:6:18: error: variable in constant address space must be initialized
+program.cl:7:19: error: variable in constant address space must be initialized
+
+ERROR: clBuildProgram failed! (CL_BUILD_PROGRAM_FAILURE from /home/gpitney/opencl_conformance/test_common/harness/kernelHelpers.c:35)
+Original source is: ------------
+
+  constant char mem0[3];
+  constant char2 mem2[3];
+  constant char3 mem3[3];
+  constant char4 mem4[3];
+  constant char8 mem8[3];
+  constant char16 mem16[3];
+
+kernel void test(global ulong *results)
+{
+   results[0] = (ulong)&mem0;
+   results[1] = (ulong)&mem2;
+   results[2] = (ulong)&mem3;
+   results[3] = (ulong)&mem4;
+   results[4] = (ulong)&mem8;
+   results[5] = (ulong)&mem16;
+}
+
+
+Analysis:
+--------
+Interestingly, this generated CL code compiles on Keystone 
+(not using MCJIT, using LLVM 3.3), and the test passes.
+
+Some digging shows this clang error was added after LLVM 3.3 
+(LLVM version used by TI Keystone, which explains why it passes there):
+http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131230/096405.html
+
+In this case, the LLVM clang compiler and the Khronos tests are in conflict.
+
+local_kernel_def.txt
+====================
+Failure Mode:   
+------------
+This fails due to inability to compile a Khronos test generated CL program.
+
+
+local_kernel_def...
+program.cl:3:23: error: 'tmp_sum' declared as an array with a negative size
+
+ERROR: clBuildProgram failed! (CL_BUILD_PROGRAM_FAILURE from /home/gpitney/opencl_conformance/test_common/harness/kernelHelpers.c:35)
+Original source is: ------------
+__kernel void compute_sum_with_localmem(__global int *a, int n, __global int *sum)
+{
+	 __local int tmp_sum[-2147483648];
+    int  tid = get_local_id(0);
+    int  lsize = get_local_size(0);
+    int  i;
+
+[... snip ...]
+
+Analysis:
+--------
+This test also fails on Keystone, but the negative number is (-4).
+
+The Khronos test is casting a size_t value for work group size to an int,
+and printing it into the kernel string using the %d printf() modifier.
+This does not appear to be the right printf() modifier for a size_t, so
+the test code appears to be in error.
+ 
+parameter_types
+=================
+Failure Mode:   
+------------
+Invalid results results returned from test-generated OCL kernel, which uses
+vector parameters of various sizes.
+
+[ ... snip ...]
+Testing vector size 4
+Kernel: __kernel void test_kernel(
+char4 c, uchar4 uc, short4 s, ushort4 us, int4 i, uint4 ui, float4 f,
+__global float4 *result)
+{
+  result[0] = convert_float4(c);
+  result[1] = convert_float4(uc);
+  result[2] = convert_float4(s);
+  result[3] = convert_float4(us);
+  result[4] = convert_float4(i);
+  result[5] = convert_float4(ui);
+  result[6] = f;
+}
+
+Conversion from char4 failed: index 0 got 4.28107e-38, expected 0.
+Conversion from char4 failed: index 2 got 16, expected 2.
+Conversion from char4 failed: index 3 got 1, expected -3.
+Conversion from uchar4 failed: index 0 got 4.28107e-38, expected 16.
+Conversion from uchar4 failed: index 1 got -1, expected 1.
+Conversion from uchar4 failed: index 2 got 18, expected 2.
+Conversion from uchar4 failed: index 3 got 1, expected 3.
+Conversion from short4 failed: index 0 got -19, expected -17.
+Conversion from short4 failed: index 2 got 20, expected 2.
+Conversion from short4 failed: index 3 got 1, expected -3.
+Conversion from ushort4 failed: index 0 got -23, expected 18.
+Conversion from ushort4 failed: index 1 got -1, expected 1.
+Conversion from ushort4 failed: index 2 got 0, expected 2.
+Conversion from ushort4 failed: index 3 got 0, expected 3.
+Conversion from int4 failed: index 0 got 0, expected -19.
+Conversion from int4 failed: index 1 got 0, expected -1.
+Conversion from int4 failed: index 2 got 0, expected 2.
+Conversion from int4 failed: index 3 got 0, expected -3.
+Conversion from uint4 failed: index 0 got 0, expected 20.
+Conversion from uint4 failed: index 1 got 0, expected 1.
+Conversion from uint4 failed: index 2 got 0, expected 2.
+Conversion from uint4 failed: index 3 got 0, expected 3.
+Conversion from float4 failed: index 0 got 0, expected -23.
+Conversion from float4 failed: index 1 got 0, expected -1.
+Conversion from float4 failed: index 2 got 0, expected 2.
+Conversion from float4 failed: index 3 got 0, expected -3.
+Testing vector size 8
+Kernel: __kernel void test_kernel(
+char8 c, uchar8 uc, short8 s, ushort8 us, int8 i, uint8 ui, float8 f,
+__global float8 *result)
+{
+  result[0] = convert_float8(c);
+  result[1] = convert_float8(uc);
+  result[2] = convert_float8(s);
+  result[3] = convert_float8(us);
+  result[4] = convert_float8(i);
+  result[5] = convert_float8(ui);
+  result[6] = f;
+}
+
+Conversion from char8 failed: index 0 got -5.99946e-08, expected 0.
+Conversion from char8 failed: index 2 got 16, expected 2.
+Conversion from char8 failed: index 3 got 1, expected -3.
+Conversion from char8 failed: index 4 got 4.28106e-38, expected 4.
+Conversion from char8 failed: index 5 got -1, expected -5.
+Conversion from char8 failed: index 6 got 18, expected 6.
+Conversion from char8 failed: index 7 got 1, expected -7.
+Conversion from uchar8 failed: index 0 got -19, expected 16.
+Conversion from uchar8 failed: index 1 got -1, expected 1.
+Conversion from uchar8 failed: index 2 got 20, expected 2.
+Conversion from uchar8 failed: index 3 got 1, expected 3.
+Conversion from uchar8 failed: index 4 got -5.99946e-08, expected 4.
+Conversion from uchar8 failed: index 5 got -1, expected 5.
+Conversion from uchar8 failed: index 6 got 0, expected 6.
+Conversion from uchar8 failed: index 7 got 0, expected 7.
+Conversion from short8 failed: index 0 got 0, expected -17.
+Conversion from short8 failed: index 1 got 0, expected -1.
+Conversion from short8 failed: index 2 got 0, expected 2.
+Conversion from short8 failed: index 3 got 0, expected -3.
+Conversion from short8 failed: index 4 got 0, expected 4.
+Conversion from short8 failed: index 5 got 0, expected -5.
+Conversion from short8 failed: index 6 got 0, expected 6.
+Conversion from short8 failed: index 7 got 0, expected -7.
+Conversion from ushort8 failed: index 0 got 0, expected 18.
+Conversion from ushort8 failed: index 1 got 0, expected 1.
+Conversion from ushort8 failed: index 2 got 0, expected 2.
+Conversion from ushort8 failed: index 3 got 0, expected 3.
+Conversion from ushort8 failed: index 4 got 0, expected 4.
+Conversion from ushort8 failed: index 5 got 0, expected 5.
+Conversion from ushort8 failed: index 6 got 0, expected 6.
+Conversion from ushort8 failed: index 7 got 0, expected 7.
+Conversion from int8 failed: index 0 got 0, expected -19.
+Conversion from int8 failed: index 1 got 0, expected -1.
+Conversion from int8 failed: index 2 got 0, expected 2.
+Conversion from int8 failed: index 3 got 0, expected -3.
+Conversion from int8 failed: index 4 got 0, expected 4.
+Conversion from int8 failed: index 5 got 0, expected -5.
+Conversion from int8 failed: index 6 got 0, expected 6.
+Conversion from int8 failed: index 7 got 0, expected -7.
+Conversion from uint8 failed: index 0 got 0, expected 20.
+Conversion from uint8 failed: index 1 got 0, expected 1.
+Conversion from uint8 failed: index 2 got 0, expected 2.
+Conversion from uint8 failed: index 3 got 0, expected 3.
+Conversion from uint8 failed: index 4 got 0, expected 4.
+Conversion from uint8 failed: index 5 got 0, expected 5.
+Conversion from uint8 failed: index 6 got 0, expected 6.
+Conversion from uint8 failed: index 7 got 0, expected 7.
+Conversion from float8 failed: index 0 got 0, expected -23.
+Conversion from float8 failed: index 1 got 0, expected -1.
+Conversion from float8 failed: index 2 got 0, expected 2.
+Conversion from float8 failed: index 3 got 0, expected -3.
+Conversion from float8 failed: index 4 got 0, expected 4.
+Conversion from float8 failed: index 5 got 0, expected -5.
+Conversion from float8 failed: index 6 got 0, expected 6.
+Conversion from float8 failed: index 7 got 0, expected -7.
+Testing vector size 16
+Kernel: __kernel void test_kernel(
+char16 c, uchar16 uc, short16 s, ushort16 us, int16 i, uint16 ui, float16 f,
+__global float16 *result)
+{
+  result[0] = convert_float16(c);
+  result[1] = convert_float16(uc);
+  result[2] = convert_float16(s);
+  result[3] = convert_float16(us);
+  result[4] = convert_float16(i);
+  result[5] = convert_float16(ui);
+  result[6] = f;
+}
+
+Conversion from char16 failed: index 0 got -7.22404e-06, expected 0.
+Conversion from char16 failed: index 2 got 16, expected 2.
+Conversion from char16 failed: index 3 got 1, expected -3.
+Conversion from char16 failed: index 4 got -3.96717e-07, expected 4.
+Conversion from char16 failed: index 5 got -1, expected -5.
+Conversion from char16 failed: index 6 got 18, expected 6.
+Conversion from char16 failed: index 7 got 1, expected -7.
+Conversion from char16 failed: index 8 got 0, expected 8.
+Conversion from char16 failed: index 9 got -1, expected -9.
+Conversion from char16 failed: index 10 got 20, expected 10.
+Conversion from char16 failed: index 11 got 1, expected -11.
+Conversion from char16 failed: index 12 got 4.28106e-38, expected 12.
+Conversion from char16 failed: index 13 got -1, expected -13.
+Conversion from char16 failed: index 14 got 0, expected 14.
+Conversion from char16 failed: index 15 got 0, expected -15.
+Conversion from uchar16 failed: index 0 got 0, expected 16.
+Conversion from uchar16 failed: index 1 got 0, expected 1.
+Conversion from uchar16 failed: index 2 got 0, expected 2.
+Conversion from uchar16 failed: index 3 got 0, expected 3.
+Conversion from uchar16 failed: index 4 got 0, expected 4.
+Conversion from uchar16 failed: index 5 got 0, expected 5.
+Conversion from uchar16 failed: index 6 got 0, expected 6.
+Conversion from uchar16 failed: index 7 got 0, expected 7.
+Conversion from uchar16 failed: index 8 got 0, expected 8.
+Conversion from uchar16 failed: index 9 got 0, expected 9.
+Conversion from uchar16 failed: index 10 got 0, expected 10.
+Conversion from uchar16 failed: index 11 got 0, expected 11.
+Conversion from uchar16 failed: index 12 got -3.96712e-07, expected 12.
+Conversion from uchar16 failed: index 13 got 0, expected 13.
+Conversion from uchar16 failed: index 14 got 0, expected 14.
+Conversion from uchar16 failed: index 15 got 0, expected 15.
+Conversion from short16 failed: index 0 got 0, expected -17.
+Conversion from short16 failed: index 1 got 0, expected -1.
+Conversion from short16 failed: index 2 got 0, expected 2.
+Conversion from short16 failed: index 3 got 0, expected -3.
+Conversion from short16 failed: index 4 got 0, expected 4.
+Conversion from short16 failed: index 5 got 0, expected -5.
+Conversion from short16 failed: index 6 got 0, expected 6.
+Conversion from short16 failed: index 7 got 0, expected -7.
+Conversion from short16 failed: index 8 got 0, expected 8.
+Conversion from short16 failed: index 9 got 0, expected -9.
+Conversion from short16 failed: index 10 got 0, expected 10.
+Conversion from short16 failed: index 11 got 0, expected -11.
+Conversion from short16 failed: index 12 got 0, expected 12.
+Conversion from short16 failed: index 13 got 0, expected -13.
+Conversion from short16 failed: index 14 got 0, expected 14.
+Conversion from short16 failed: index 15 got 0, expected -15.
+Conversion from ushort16 failed: index 0 got 0, expected 18.
+Conversion from ushort16 failed: index 1 got 0, expected 1.
+Conversion from ushort16 failed: index 2 got 0, expected 2.
+Conversion from ushort16 failed: index 3 got 0, expected 3.
+Conversion from ushort16 failed: index 4 got 0, expected 4.
+Conversion from ushort16 failed: index 5 got 0, expected 5.
+Conversion from ushort16 failed: index 6 got 0, expected 6.
+Conversion from ushort16 failed: index 7 got 0, expected 7.
+Conversion from ushort16 failed: index 8 got 0, expected 8.
+Conversion from ushort16 failed: index 9 got 0, expected 9.
+Conversion from ushort16 failed: index 10 got 0, expected 10.
+Conversion from ushort16 failed: index 11 got 0, expected 11.
+Conversion from ushort16 failed: index 12 got 0, expected 12.
+Conversion from ushort16 failed: index 13 got 0, expected 13.
+Conversion from ushort16 failed: index 14 got 0, expected 14.
+Conversion from ushort16 failed: index 15 got 0, expected 15.
+Conversion from int16 failed: index 0 got 0, expected -19.
+Conversion from int16 failed: index 1 got 0, expected -1.
+Conversion from int16 failed: index 2 got 0, expected 2.
+Conversion from int16 failed: index 3 got 0, expected -3.
+Conversion from int16 failed: index 4 got 0, expected 4.
+Conversion from int16 failed: index 5 got 0, expected -5.
+Conversion from int16 failed: index 6 got 0, expected 6.
+Conversion from int16 failed: index 7 got 0, expected -7.
+Conversion from int16 failed: index 8 got 0, expected 8.
+Conversion from int16 failed: index 9 got 0, expected -9.
+Conversion from int16 failed: index 10 got 0, expected 10.
+Conversion from int16 failed: index 11 got 0, expected -11.
+Conversion from int16 failed: index 12 got 0, expected 12.
+Conversion from int16 failed: index 13 got 0, expected -13.
+Conversion from int16 failed: index 14 got 0, expected 14.
+Conversion from int16 failed: index 15 got 0, expected -15.
+Conversion from uint16 failed: index 0 got 0, expected 20.
+Conversion from uint16 failed: index 1 got 0, expected 1.
+Conversion from uint16 failed: index 2 got 0, expected 2.
+Conversion from uint16 failed: index 3 got 0, expected 3.
+Conversion from uint16 failed: index 4 got 0, expected 4.
+Conversion from uint16 failed: index 5 got 0, expected 5.
+Conversion from uint16 failed: index 6 got 0, expected 6.
+Conversion from uint16 failed: index 7 got 0, expected 7.
+Conversion from uint16 failed: index 8 got 0, expected 8.
+Conversion from uint16 failed: index 9 got 0, expected 9.
+Conversion from uint16 failed: index 10 got 0, expected 10.
+Conversion from uint16 failed: index 11 got 0, expected 11.
+Conversion from uint16 failed: index 12 got 0, expected 12.
+Conversion from uint16 failed: index 13 got 0, expected 13.
+Conversion from uint16 failed: index 14 got 0, expected 14.
+Conversion from uint16 failed: index 15 got 0, expected 15.
+
+[ then crashes on next sub-tests]
+
+Analysis:
+--------
+Some rather intense debugging found the culprit being the float<n> *
+results output kernel vector argument was being *modified* by the MCJIT
+generated ARM assembly kernel code!  This was determined by gdb debugging
+via assembly into the JIT'd kernel, and also inserting callbacks to 
+builtin funcitons to inspect the results pointer argument at entry and exit
+to and from the kernel function.
+
+After creating a simplified test case using lli, was able to reproduce the error 
+and fix the issue by modifying the intermediate IR of the test case.
+
+However, the same modifications translated into shamrock did not resolve the issue there.
+
+This issue may be the cause of many of the other basic test failures which
+involve vector parameters used in JIT'd ARM kernels.
+
+These other tests fail due to unexpected results being returned from the JIT'ed
+kernels on ARM:
+
+local_kernel_scope
+explicit_s2v_<type>
+fpmath_float4
+intmath_int4
+intmath_long2
+
+TODO:
+=====
+kernel_memory_alignment_local - clSetKenrelArg failed.
+vload_local - clSetKernelArg failed
+vstore_local - clSetKernelArg failed
+local_arg_def - clCreateBuffer failed.
+

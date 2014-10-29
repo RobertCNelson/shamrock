@@ -1,0 +1,29 @@
+Things To Do:
+
+
+Features:
+=========
+
+1. Merge latest TI OpenCL DSP Device support
+
+2. Update to OpenCL v 1.2
+
+Issues:
+=======
+
+1. Khronos basic tests failures (both on ARM and x86_64), documented here:
+
+tests/basic_test_failures.lst
+
+2. Testing Full DSP Device support.
+
+Requires extra TI DSP compiler, DSP side files and builtin library which are not 
+currently released.
+
+The build therefore defaults to SHAMROCK build type, for CPU Device only, and uses a CPU only
+builtins library.  The clc.h, therefore, has not been tested with DSP Device builds.
+
+3. Sanity Test, one kernel test failure 
+
+See README.txt for latest results.
+
