@@ -8,6 +8,7 @@ set(OPENCL_TESTS_SOURCE
     test_context.cpp
     test_commandqueue.cpp
     test_mem.cpp
+    test_basic_parameter_types.cpp
     test_kernel.cpp
     test_program.cpp
     test_builtins.cpp
@@ -25,6 +26,7 @@ OPENCL_TEST(tests device)
 OPENCL_TEST(tests context)
 OPENCL_TEST(tests commandqueue)
 OPENCL_TEST(tests mem)
+OPENCL_TEST(tests basic_parameter_types)
 OPENCL_TEST(tests kernel)
 OPENCL_TEST(tests program)
 OPENCL_TEST(tests builtins)

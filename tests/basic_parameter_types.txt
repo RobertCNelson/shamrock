@@ -1,0 +1,158 @@
+
+Instructions for reproducing test_kernel vector store error in shamrock:
+
+1. Clone (new) public Linaro shamrock repo (gpgpu/shamrock.git) and checkout branch: basic_parameter_types.
+
+2. Build per shamrock readme.
+
+2. % cp <shamrock-src>/tests/basic_parameter_types.cl <shamrock-build>/tests
+
+3. Run the following gdb session (see comments lines with #### ):
+
+tests> gdb --args tests basic_parameter_types nofork
+GNU gdb (GDB) 7.5.91.20130417-cvs-ubuntu
+Copyright (C) 2013 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "arm-linux-gnueabihf".
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>...
+Reading symbols from /home/user/shamrock_build/tests/tests...done.
+(gdb) b main
+Breakpoint 1 at 0xb45a: file /home/user/shamrock/tests/tests.c, line 44.
+(gdb) run
+Starting program: /home/user/shamrock_build/tests/tests basic_parameter_types nofork
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/arm-linux-gnueabihf/libthread_db.so.1".
+
+Breakpoint 1, main (argc=3, argv=0xbefff704)
+    at /home/user/shamrock/tests/tests.c:44
+44	    Suite *s = NULL;
+(gdb) b Coal::CPUKernelWorkGroup::run
+Breakpoint 2 at 0xb53e506a: file /home/user/shamrock/src/core/cpu/kernel.cpp, line 649.
+(gdb) c
+Continuing.
+Running suite(s): basic_parameter_types
+[New Thread 0xb4de4450 (LWP 9283)]
+[New Thread 0xb45e4450 (LWP 9284)]
+[Switching to Thread 0xb4de4450 (LWP 9283)]
+
+Breakpoint 2, Coal::CPUKernelWorkGroup::run (this=0xb3800468)
+    at /home/user/shamrock/src/core/cpu/kernel.cpp:649
+649	    std::vector<void *> locals_to_free;
+(gdb) list
+644	}
+645
+646	bool CPUKernelWorkGroup::run()
+647	{
+648	    // Get the kernel function to call
+649	    std::vector<void *> locals_to_free;
+650	    llvm::Function *kernel_func = p_kernel->callFunction();
+651
+652	    if (!kernel_func)
+653	        return false;
+(gdb)
+654
+655	    Program *p = (Program *)p_kernel->kernel()->parent();
+656	    CPUProgram *prog = (CPUProgram *)(p->deviceDependentProgram(p_kernel->device()));
+657
+658	    // Make object usable for execution:  (only applies to MCJIT):
+659	    prog->jit()->finalizeObject();
+660
+661		std::string kname = kernel_func->getName().str();
+662
+663		// original
+(gdb)
+664	    p_kernel_func_addr =
+665	        (void(*)(void *))prog->jit()->getPointerToFunction(kernel_func);
+666
+667		// TAG
+668		// llvm::Function *t_func = prog->jit()->FindFunctionNamed(p_kernel->p_kernel->p_name->str());
+669	//	llvm::Function *t_func = prog->jit()->FindFunctionNamed(p_kernel->kernel()->p_name.c_str());
+670	//	p_kernel_func_addr = (void(*)(void *))prog->jit()->getPointerToFunction(t_func);
+671		p_kernel_func_addr =(void(*)(void *)) prog->jit()->getFunctionAddress(kname);
+672
+673	    // Get the arguments
+(gdb) b 661   #### run to after finalizeObject(), test_kernel symbol now exists
+Breakpoint 3 at 0xb53e50ca: file /home/user/shamrock/src/core/cpu/kernel.cpp, line 661.
+(gdb) c
+Continuing.
+
+Breakpoint 3, Coal::CPUKernelWorkGroup::run (this=0xb3800468)
+    at /home/user/shamrock/src/core/cpu/kernel.cpp:661
+661		std::string kname = kernel_func->getName().str();
+(gdb) b test_kernel
+Breakpoint 4 at 0xb50cf008
+(gdb) c
+Continuing.
+
+Breakpoint 4, 0xb50cf008 in test_kernel ()
+(gdb) disass
+Dump of assembler code for function test_kernel:
+   0xb50cf000 <+0>:	sub	sp, sp, #4
+   0xb50cf004 <+4>:	str	r0, [sp]
+=> 0xb50cf008 <+8>:	mov	r0, sp
+   0xb50cf00c <+12>:	vld1.32	{d16[0]}, [r0 :32]
+   0xb50cf010 <+16>:	vmovl.u8	q8, d16
+   0xb50cf014 <+20>:	vmov.u16	r2, d16[2]
+   0xb50cf018 <+24>:	vmov.u16	r0, d16[0]
+   0xb50cf01c <+28>:	sxtb	r2, r2
+   0xb50cf020 <+32>:	sxtb	r0, r0
+   0xb50cf024 <+36>:	vmov.32	d20[0], r2
+   0xb50cf028 <+40>:	vmov.u16	r2, d16[1]
+   0xb50cf02c <+44>:	vmov.32	d18[0], r0
+   0xb50cf030 <+48>:	vmov.u16	r0, d16[3]
+   0xb50cf034 <+52>:	sxtb	r2, r2
+   0xb50cf038 <+56>:	sxtb	r0, r0
+   0xb50cf03c <+60>:	vmov.32	d18[1], r2
+   0xb50cf040 <+64>:	vmov.32	d20[1], r0
+   0xb50cf044 <+68>:	vcvt.f32.s32	q8, q9
+   0xb50cf048 <+72>:	vcvt.f32.s32	q9, q10
+   0xb50cf04c <+76>:	vext.8	q8, q8, q8, #8
+   0xb50cf050 <+80>:	vext.8	q8, q8, q9, #8
+   0xb50cf054 <+84>:	vst1.64	{d16-d17}, [r1 :128]
+   0xb50cf058 <+88>:	add	sp, sp, #4
+   0xb50cf05c <+92>:	bx	lr
+End of assembler dump.
+(gdb) stepi 18
+0xb50cf050 in test_kernel ()
+(gdb) stepi   ### step down to vst1.64 instruction.
+0xb50cf054 in test_kernel ()
+(gdb) display/x $r1   ### $r1 register should hold output float4 *result ptr
+2: /x $r1 = 0xf94bc8
+(gdb) x/4f $r1  #### hmmm, shouldn't these be all 0's?
+0xf94bc8:	-4.7186802e-07	2.39711496e-38	2.12743103e-07	7.56701171e-44
+(gdb) display/x $d16  ### show that convert_float4(char4) worked: {0,1,2,3}
+3: /x $d16 = {u8 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x80, 0x3f}, u16 = {0x0,
+    0x0, 0x0, 0x3f80}, u32 = {0x0, 0x3f800000}, u64 = 0x3f80000000000000,
+  f32 = {0x0, 0x1}, f64 = 0x0}
+(gdb) display/x $d17
+4: /x $d17 = {u8 = {0x0, 0x0, 0x0, 0x40, 0x0, 0x0, 0x40, 0x40}, u16 = {0x0,
+    0x4000, 0x0, 0x4040}, u32 = {0x40000000, 0x40400000},
+  u64 = 0x4040000040000000, f32 = {0x2, 0x3}, f64 = 0x20}
+(gdb) stepi ### now stepi vst1.64 instruction, should store {0,1,2,3} to [$r1]
+0xb50cf058 in test_kernel ()
+4: /x $d17 = {u8 = {0x0, 0x0, 0x0, 0x40, 0x0, 0x0, 0x40, 0x40}, u16 = {0x0,
+    0x4000, 0x0, 0x4040}, u32 = {0x40000000, 0x40400000},
+  u64 = 0x4040000040000000, f32 = {0x2, 0x3}, f64 = 0x20}
+3: /x $d16 = {u8 = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x80, 0x3f}, u16 = {0x0,
+    0x0, 0x0, 0x3f80}, u32 = {0x0, 0x3f800000}, u64 = 0x3f80000000000000,
+  f32 = {0x0, 0x1}, f64 = 0x0}
+2: /x $r1 = 0xf940d9   #### OOPS!  $r1 register changed! NOT POSSIBLE?
+(gdb) x/4f $r1
+0xf940d9:	1.66694513e-24	-7.21760423e-29	1.77866814e-41	-3.85185989e-34
+(gdb) x/4f 0xf94bc8  #### and memory at old $r1 (result ptr) has garbage.
+0xf94bc8:	4.20389539e-45	2.39711496e-38	2.12743103e-07	7.56701171e-44
+(gdb) c
+Continuing.
+Conversion from char failed: got 4.2039e-45,expected 0
+Conversion from char failed: got 2.39711e-38,expected 1
+Conversion from char failed: got 2.12743e-07,expected 2
+Conversion from char failed: got 7.56701e-44,expected 3
+0%: Checks: 1, Failures: 1, Errors: 0
+/home/user/shamrock/tests/test_basic_parameter_types.cpp:139:F:basic_parameter_types:test_basic_parameter_types:0: the kernel hasn't done its job, the buffer is wrong
+[Thread 0xb4de4450 (LWP 9283) exited]
+[Thread 0xb45e4450 (LWP 9284) exited]
+[Inferior 1 (process 9280) exited with code 01]
