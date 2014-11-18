@@ -658,17 +658,8 @@ bool CPUKernelWorkGroup::run()
     // Make object usable for execution:  (only applies to MCJIT):
     prog->jit()->finalizeObject();
 
-	std::string kname = kernel_func->getName().str();
-
-	// original 
-    p_kernel_func_addr =
-        (void(*)(void *))prog->jit()->getPointerToFunction(kernel_func);
-	
-	// TAG
-	// llvm::Function *t_func = prog->jit()->FindFunctionNamed(p_kernel->p_kernel->p_name->str());
-//	llvm::Function *t_func = prog->jit()->FindFunctionNamed(p_kernel->kernel()->p_name.c_str());
-//	p_kernel_func_addr = (void(*)(void *))prog->jit()->getPointerToFunction(t_func);
-	p_kernel_func_addr =(void(*)(void *)) prog->jit()->getFunctionAddress(kname);
+    std::string kname = kernel_func->getName().str();
+    p_kernel_func_addr =(void(*)(void *)) prog->jit()->getFunctionAddress(kname);
 
     // Get the arguments
     p_args = callArgs(locals_to_free);
