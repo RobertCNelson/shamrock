@@ -89,6 +89,7 @@ void *CPUBuffer::nativeGlobalPointer() const
 bool CPUBuffer::allocate()
 {
     size_t buf_size = p_buffer->size();
+    int    retval;
 
     if (buf_size == 0)
         // Something went wrong...
@@ -97,9 +98,8 @@ bool CPUBuffer::allocate()
     if (!p_data)
     {
         // We don't use a host ptr, we need to allocate a buffer
-        p_data = std::malloc(buf_size);
-
-        if (!p_data)
+        retval = posix_memalign(&p_data, 128, buf_size);  // align for type double16 size.
+        if (retval)
             return false;
 
         p_data_malloced = true;

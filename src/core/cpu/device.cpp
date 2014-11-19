@@ -460,12 +460,12 @@ cl_int CPUDevice::info(cl_device_info param_name,
             SIMPLE_ASSIGN(cl_uint, 0);          //images not supported
             break;
 
-        case CL_DEVICE_MEM_BASE_ADDR_ALIGN:
-            SIMPLE_ASSIGN(cl_uint, 1024 /* sizeof(long16)*8) */);  // 128 byte 
+        case CL_DEVICE_MEM_BASE_ADDR_ALIGN:     // in bits!
+            SIMPLE_ASSIGN(cl_uint, 1024 /* sizeof(double16)*8) */);  // 128 byte
             break;
 
-        case CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE:
-            SIMPLE_ASSIGN(cl_uint, 16);
+        case CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE:  // in bytes!
+	    SIMPLE_ASSIGN(cl_uint, 128  /* sizeof(double16) */);
             break;
 
         case CL_DEVICE_SINGLE_FP_CONFIG:
