@@ -1,4 +1,4 @@
-__kernel void test_kernel(char4 c, __global float4 *result)
+__kernel void test_kernel(int4  i, __global float4 *result)
 {
-  result[0] = convert_float4(c);
+  result[0] = convert_float4(i);
 }

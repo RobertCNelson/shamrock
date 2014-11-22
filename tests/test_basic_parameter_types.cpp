@@ -44,7 +44,7 @@ START_TEST (test_basic_parameter_types)
     cl_int error;
     cl_kernel kernel;
     cl_mem results;
-    cl_char c[4]={0,1,2,3};   // input: one char4 vector.
+    cl_int i[4]={0,1,2,3};   // input: one int4 vector.
     float results_back[1*4] = {0.0f, 0.0f, 0.0f, 0.0f};  // output: one float4 vector.
     bool ok = true;
     float expected;
@@ -109,7 +109,7 @@ START_TEST (test_basic_parameter_types)
         "cannot create a valid read-write buffer"
     );
 
-    error = clSetKernelArg(kernel, 0, sizeof(cl_char)*4, &c);
+    error = clSetKernelArg(kernel, 0, sizeof(cl_int)*4, &i);
     fail_if(
         error != CL_SUCCESS,
         "cannot set kernel argument"
@@ -127,7 +127,7 @@ START_TEST (test_basic_parameter_types)
 
     // Verify the results
     for (int index = 0; index < 4; index++) {
-        expected = (float)c[index];
+        expected = (float)i[index];
         if (results_back[index] != expected) {
             std::cout << "Conversion from char failed: got " << results_back[index] << ",expected " << expected << std::endl;
 	    ok = false;
