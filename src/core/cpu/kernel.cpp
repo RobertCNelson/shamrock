@@ -290,10 +290,11 @@ size_t CPUKernel::typeOffset(size_t &offset, size_t type_len)
 
     // Align offset to stype_len
     type_len = next_power_of_two(type_len);
-    size_t mask = ~(type_len - 1);
+    size_t mask = (type_len - 1);
 
-    while (rs & mask != rs)
-        rs++;
+    if (rs&mask) {
+      rs += (type_len - rs%type_len);
+    }
 
     // Where to try to place the next value
     offset = rs + type_len;
@@ -566,9 +567,8 @@ void *CPUKernelWorkGroup::callArgs(std::vector<void *> &locals_to_free)
         CPUKernel::typeOffset(args_size, arg->valueSize() * arg->vecDim());
     }
 
-    rs = std::malloc(args_size);
-
-    if (!rs)
+    int retval = posix_memalign(&rs, 128, args_size);  // align for type double16 size.
+    if (retval || !rs)
         return NULL;
 
     size_t arg_offset = 0;
@@ -648,6 +648,10 @@ bool CPUKernelWorkGroup::run()
     // Get the kernel function to call
     std::vector<void *> locals_to_free;
     llvm::Function *kernel_func = p_kernel->callFunction();
+
+#if 0  // Let's see the stub's IR:
+    kernel_func->dump();
+#endif
 
     if (!kernel_func)
         return false;
