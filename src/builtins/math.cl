@@ -116,7 +116,7 @@ BINARY_NO_BUILTIN(minmag)
 UNARY_VEC_DEF(uint,  float,  nan, nan)
 UNARY_VEC_DEF(ulong, double, nan, nan)
 
-BINARY(nextafter)
+BINARY_NO_BUILTIN(nextafter)
 BINARY(pow)
 
 BINARY_VEC_DEF_ALT(float,  float,  int, pown, powf)

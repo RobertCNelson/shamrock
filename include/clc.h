@@ -855,7 +855,7 @@ SELECT_EXPAND_TYPES
 
 #define MAXFLOAT        FLT_MAX
 #define HUGE_VALF       __builtin_huge_valf()
-#define INFINITY        (1.0f / 0.0f)
+#define INFINITY        __builtin_inff()
 #define NAN             (0.0f / 0.0f)
 
 #define HUGE_VAL        __builtin_huge_val()
@@ -998,7 +998,11 @@ _CLC_OVERLOAD _CLC_INLINE double nan(ulong nancode)
 UNARY_VEC_DECL(uint,  float,  nan)
 UNARY_VEC_DECL(ulong, double, nan)
 
-BINARY(nextafter)
+BINARY_INLINE  (float,  float,  nextafter, __builtin_nextafterf)
+BINARY_INLINE  (double, double, nextafter, __builtin_nextafter)
+BINARY_VEC_DECL(float, float, nextafter)
+BINARY_VEC_DECL(double, double, nextafter)
+
 BINARY(pow)
 
 _CLC_PROTECTED double builtin_pow(double x, double y);
