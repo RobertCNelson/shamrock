@@ -339,6 +339,7 @@ std::vector<Kernel *> Program::createKernels(cl_int *errcode_ret)
 {
     std::vector<Kernel *> rs;
     Kernel *kern = NULL;
+    size_t i = 0;
 
     /*-------------------------------------------------------------------------
     * We should never go here
@@ -351,11 +352,12 @@ std::vector<Kernel *> Program::createKernels(cl_int *errcode_ret)
      * the currently built program.  In that case, KernelList.size() must be the actual
      * number of kernels compiled into the program (event if they were previously released).
      */
-    for (size_t i=0; i < kernelReleasedList.size(); i++)
+    //for (size_t i=0; i < kernelReleasedList.size(); i++)
+    while(kernelReleasedList.size())
     {
         kern = kernelReleasedList[i];
-	kernelReleasedList.erase(kernelReleasedList.begin() + i);
-	kernelList.push_back(kern);
+        kernelReleasedList.erase(kernelReleasedList.begin() + i);
+        kernelList.push_back(kern);
     }
 
     if (kernelList.size()) return kernelList;
