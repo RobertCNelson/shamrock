@@ -61,7 +61,9 @@ using namespace Coal;
 // unsigned arm_speed();
 #endif
 
-#define ONE_GIGABYTE (1 << 30)
+#define ONE_MEGABYTE (1024 * 1024)
+#define ONE_GIGABYTE (1024 * ONE_MEGABYTE)
+#define HALF_GIGABYTE (512 * ONE_MEGABYTE)
 
 CPUDevice::CPUDevice()
 : DeviceInterface(), p_cores(0), p_num_events(0), p_workers(0), p_stop(false),
@@ -375,14 +377,18 @@ cl_int CPUDevice::info(cl_device_info param_name,
             SIMPLE_ASSIGN(cl_uint, MAX_WORK_DIMS);
             break;
 
+        /*-----------------------------------------------------------------
+        * Set to a small enough size so that Khronos basic/local_kernel_def
+        * test can allocate and pass.
+        *----------------------------------------------------------------*/
         case CL_DEVICE_MAX_WORK_GROUP_SIZE:
-            SIMPLE_ASSIGN(size_t, ONE_GIGABYTE);
+            SIMPLE_ASSIGN(size_t, 46*1024);
             break;
 
         case CL_DEVICE_MAX_WORK_ITEM_SIZES:
             for (int i=0; i<MAX_WORK_DIMS; ++i)
             {
-                work_dims[i] = ONE_GIGABYTE;
+                work_dims[i] = 46*1024;
             }
             value_length = MAX_WORK_DIMS * sizeof(size_t);
             value = &work_dims;
@@ -509,9 +515,9 @@ cl_int CPUDevice::info(cl_device_info param_name,
             // TODO: 1 Gio seems to be enough for software acceleration
 
 #if defined(__arm__)
-            SIMPLE_ASSIGN(cl_ulong, 512*1024*1024);
+            SIMPLE_ASSIGN(cl_ulong, HALF_GIGABYTE);
 #else
-            SIMPLE_ASSIGN(cl_ulong, 1*1024*1024*1024);
+            SIMPLE_ASSIGN(cl_ulong, ONE_GIGABYTE);
 #endif
             break;
 
