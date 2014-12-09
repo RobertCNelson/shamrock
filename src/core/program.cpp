@@ -375,15 +375,11 @@ std::vector<Kernel *> Program::createKernels(cl_int *errcode_ret)
     {
         cl_int result  = CL_SUCCESS;
         Kernel *kernel = createKernel(kernels[i]->getName().str(), &result);
-
-        if (result == CL_SUCCESS) 
-        {
-            kernelList.push_back(kernel);
-        }
-        else
+        if(result != CL_SUCCESS)
         {
             *errcode_ret = result;
             delete kernel;
+            break;
         }
     }
 
