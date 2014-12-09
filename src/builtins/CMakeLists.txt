@@ -1,6 +1,6 @@
 if (SHAMROCK_BUILD)
 
-set(CUSTOM_COMMAND ${CLANG_EXECUTABLE} -cc1 -emit-llvm-bc -x cl -O2 -fno-builtin -nobuiltininc  -Fvisibility=protected -cl-std=CL1.2 -ffp-contract=off )
+set(CUSTOM_COMMAND ${CLANG_EXECUTABLE} -cc1 -emit-llvm-bc -x cl -O2 -fno-builtin -nobuiltininc  -Fvisibility=protected -ffake-address-space-map -cl-std=CL1.2 -ffp-contract=off )
 
 FILE(GLOB CL_SOURCES ${CLC_BUILTINS_DIR}/*.cl)
 #MESSAGE(STATUS "CL_SOURCES: ${CL_SOURCES}" )

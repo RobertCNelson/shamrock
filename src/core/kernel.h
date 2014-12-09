@@ -90,15 +90,16 @@ class Kernel : public Object
                 enum File
                 {
                     Private = 0,  /*!< \brief __private */
-#if 1
+#ifdef SHAMROCK_BUILD
+                    /* clang -ffake-address-space-map mappings, LLVM IR */
+                    Global = 1,   /*!< \brief __global */
+                    Local = 2,    /*!< \brief __local */
+                    Constant = 3     /*!< \brief __constant */
+#else
+                    /* Mapping used by TI DSP (SPIR) */
                     Global = 1,   /*!< \brief __global */
                     Constant = 2, /*!< \brief __constant */
                     Local = 3     /*!< \brief __local */
-#else
-                    /* using clang defaults */
-                    Global   = 0xFFFF00, /*!< \brief __global */
-                    Local    = 0xFFFF01, /*!< \brief __local */
-                    Constant = 0xFFFF02  /*!< \brief __constant */
 #endif
                 };
 

@@ -127,6 +127,10 @@ int Compiler::compile(const std::string &options,
     if (devtype == CL_DEVICE_TYPE_CPU) {
        // Originally: target_opts.Triple = llvm::sys::getHostTriple();
        target_opts.Triple = llvm::sys::getDefaultTargetTriple();
+       // For CPU, we need OpenCL address space modifiers on our data types.
+       // This setting achieves that, and shamrock needs to know clang's address mapping.
+       // In the future, if we ever get a SPIR->ARM backend, this may be unnecessary.
+       lang_opts.FakeAddressSpaceMap = true;
     }
     else // devtype != CL_DEVICE_TYPE_CPU
     {
@@ -286,7 +290,7 @@ int Compiler::compile(const std::string &options,
     p_module = Act->takeModule();
 
     // uncomment to debug the llvm IR
-    // p_module->dump();  
+    // p_module->dump();
 
     return false;
 }

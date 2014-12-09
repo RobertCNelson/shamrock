@@ -178,7 +178,8 @@ cl_int Kernel::addFunction(DeviceInterface *device, llvm::Function *function,
             // It's a pointer, dereference it
             llvm::PointerType *p_type = llvm::cast<llvm::PointerType>(arg_type);
 
-            file = (Arg::File)p_type->getAddressSpace();
+            unsigned int space = p_type->getAddressSpace();
+            file = (Arg::File)space;
             arg_type = p_type->getElementType();
 
             // If it's a __local argument, we'll have to allocate memory at run time
