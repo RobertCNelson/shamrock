@@ -588,17 +588,19 @@ void *CPUKernelWorkGroup::callArgs(std::vector<void *> &locals_to_free)
         {
             case Kernel::Arg::Buffer:
             {
-                MemObject *buffer = *(MemObject **)arg->data();
-
                 if (arg->file() == Kernel::Arg::Local)
                 {
                     // Alloc a buffer and pass it to the kernel
-                    void *local_buffer = std::malloc(arg->allocAtKernelRuntime());
+                    // align for type double16 size.
+		    void *local_buffer = NULL;
+                    int retval = posix_memalign(&local_buffer, 128, arg->allocAtKernelRuntime());
                     locals_to_free.push_back(local_buffer);
                     *(void **)target = local_buffer;
                 }
                 else
                 {
+                    MemObject *buffer = *(MemObject **)arg->data();
+
                     if (!buffer)
                     {
                         // We can do that, just send NULL
