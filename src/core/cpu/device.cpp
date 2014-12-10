@@ -509,8 +509,11 @@ cl_int CPUDevice::info(cl_device_info param_name,
                                                "MemTotal:", 512*1024) * 1024);
             break;
 
-        case CL_DEVICE_MAX_MEM_ALLOC_SIZE:
         case CL_DEVICE_LOCAL_MEM_SIZE:
+            SIMPLE_ASSIGN(cl_ulong, 128 * 1024);
+	    break;
+
+        case CL_DEVICE_MAX_MEM_ALLOC_SIZE:
         case CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE:
             // TODO: 1 Gio seems to be enough for software acceleration
 

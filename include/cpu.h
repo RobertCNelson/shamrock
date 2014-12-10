@@ -31,23 +31,27 @@
 #include "clc.h"
 
 #define PREFETCH_VECTORIZE(PRIM_TYPE) \
-   _CLC_OVERLOAD _CLC_DECL void prefetch(const __global PRIM_TYPE    *p, size_t num_gentypes); \
-   _CLC_OVERLOAD _CLC_DECL void prefetch(const __global PRIM_TYPE##2 *p, size_t num_gentypes); \
-   _CLC_OVERLOAD _CLC_DECL void prefetch(const __global PRIM_TYPE##3 *p, size_t num_gentypes); \
-   _CLC_OVERLOAD _CLC_DECL void prefetch(const __global PRIM_TYPE##4 *p, size_t num_gentypes); \
-   _CLC_OVERLOAD _CLC_DECL void prefetch(const __global PRIM_TYPE##8 *p, size_t num_gentypes); \
-   _CLC_OVERLOAD _CLC_DECL void prefetch(const __global PRIM_TYPE##16 *p, size_t num_gentypes); \
+  _CLC_OVERLOAD _CLC_INLINE void prefetch(const __global PRIM_TYPE    *p, size_t num_gentypes){} \
+   _CLC_OVERLOAD _CLC_INLINE void prefetch(const __global PRIM_TYPE##2 *p, size_t num_gentypes){} \
+   _CLC_OVERLOAD _CLC_INLINE void prefetch(const __global PRIM_TYPE##3 *p, size_t num_gentypes){} \
+   _CLC_OVERLOAD _CLC_INLINE void prefetch(const __global PRIM_TYPE##4 *p, size_t num_gentypes){} \
+   _CLC_OVERLOAD _CLC_INLINE void prefetch(const __global PRIM_TYPE##8 *p, size_t num_gentypes){} \
+   _CLC_OVERLOAD _CLC_INLINE void prefetch(const __global PRIM_TYPE##16 *p, size_t num_gentypes){} \
 
-PREFETCH_VECTORIZE(char)
-PREFETCH_VECTORIZE(uchar)
-PREFETCH_VECTORIZE(short)
-PREFETCH_VECTORIZE(ushort)
-PREFETCH_VECTORIZE(int)
-PREFETCH_VECTORIZE(uint)
-PREFETCH_VECTORIZE(long)
-PREFETCH_VECTORIZE(ulong)
-PREFETCH_VECTORIZE(float)
-PREFETCH_VECTORIZE(double)
+
+#define PREFETCH_TYPES()           \
+        PREFETCH_VECTORIZE(char)   \
+        PREFETCH_VECTORIZE(uchar)  \
+        PREFETCH_VECTORIZE(short)  \
+        PREFETCH_VECTORIZE(ushort) \
+        PREFETCH_VECTORIZE(int)    \
+        PREFETCH_VECTORIZE(uint)   \
+        PREFETCH_VECTORIZE(long)   \
+        PREFETCH_VECTORIZE(ulong)  \
+        PREFETCH_VECTORIZE(float)  \
+        PREFETCH_VECTORIZE(double) \
+
+PREFETCH_TYPES()
 
 /*-----------------------------------------------------------------------------
 * This can be empty since our copy routines are currently synchronous. When 

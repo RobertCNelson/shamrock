@@ -408,11 +408,7 @@ Buffer::Buffer(Context *ctx, size_t size, void *host_ptr, cl_mem_flags flags,
         return;
     }
 
-#if defined(__arm__)
-    if (size > 512*1024*1024)
-#else
     if (size > 1*1024*1024*1024)
-#endif
     {
          *errcode_ret = CL_INVALID_BUFFER_SIZE;
          return;
