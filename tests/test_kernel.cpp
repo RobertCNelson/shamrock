@@ -117,7 +117,7 @@ START_TEST (test_compiled_kernel)
         "simple_function is not a kernel"
     );
 
-    kernels[0] = clCreateKernel(program, "kernel1", &result);
+    kernels[1] = clCreateKernel(program, "kernel1", &result);
     fail_if(
         result != CL_SUCCESS,
         "unable to create a valid kernel"
