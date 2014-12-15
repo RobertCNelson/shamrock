@@ -249,7 +249,7 @@ TERNARY_VEC_DECL(uint, uint, mad_sat)
 TERNARY_VEC_DECL(long, long, mad_sat)
 TERNARY_VEC_DECL(ulong, ulong, mad_sat)
 
-int printf(const char* _format, ...);
+int printf(__constant char* _format, ...);
 void *memcpy(void *dst, const void * src, uint size);
 
 _CLC_DECL  size_t  get_local_id     (uint dim);
