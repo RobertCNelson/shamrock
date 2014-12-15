@@ -30,7 +30,6 @@
 #include "test_context.h"
 #include "test_commandqueue.h"
 #include "test_mem.h"
-#include "test_basic_parameter_types.h"
 #include "test_kernel.h"
 #include "test_program.h"
 #include "test_builtins.h"
@@ -59,7 +58,6 @@ int main(int argc, char **argv)
     TESTSUITE(context, "context");
     TESTSUITE(commandqueue, "commandqueue");
     TESTSUITE(mem, "mem");
-    TESTSUITE(bpt, "basic_parameter_types");
     TESTSUITE(kernel, "kernel");
     TESTSUITE(program, "program");
     TESTSUITE(builtins, "builtins");
