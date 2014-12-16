@@ -1,7 +1,14 @@
-Denis Steckelmacher
-TI OpenCL team
-Tom Gall
-Gil Pitney
-Show Liu
-Jia Jia
+This software's geneology: 
+ - Denis Steckelmacher: http://people.freedesktop.org/~steckdenis/clover
+ - TI OpenCL team: http://git.ti.com/opencl
+With some inclusions derived from:
+ - http://libclc.llvm.org
+ - pocl: http://portablecl.org
 
+Contributors at Linaro include:
+ - Tom Gall
+ - Gil Pitney
+ - Show Liu
+ - Jia Jia
+... and special thanks to
+ - Renato Golin (for help with clang/LLVM/ARM)

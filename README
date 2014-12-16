@@ -1,4 +1,4 @@
-Shamrock: an OpenCL implementation based on clover
+Shamrock: an OpenCL 1.1 implementation based on clover
 
 This is a continuation of the clover OpenCL project:
 	http://people.freedesktop.org/~steckdenis/clover
@@ -29,8 +29,8 @@ LLVM Configuration:
 This was tested using LLVM 3.5.0 stable release from:
 http://llvm.org/releases/download.html
 
-Note: LLVM must be configured and built with certain options to link with shamrock for
-ARM.
+Note: LLVM must be configured and built with certain options to link with
+shamrock for ARM.
 
 The following creates a release build for ARM, with LLVM installed 
 into /opt/llvm:
@@ -47,25 +47,21 @@ Shamrock Build:
 Current Branch: Khronos_conformance
 
 Usage: cmake <project_src_dir> <optional_defines>*
-  where <optional_defines*> are:
-    -DPROJECT=shamrock | shannon | hawking
-    -DLLVM_CONFIG_EXECUTABLE=<path to private llvm-config version>
-Note PROJECT=shamrock is default.
 
-The best way to compile is to use an out of src build, eg for a Debug build, 
+If LLVM lives in a private path:
+   -DLLVM_CONFIG_EXECUTABLE=<path to private llvm-config version>
+If your Clang is installed to a different location than LLVM,
+then define CLANG_INCLUDE_DIR and CLANG_LIB_DIR on the cmake cmd line:
+  -DCLANG_INCLUDE_DIR=/opt/clang/include -DCLANG_LIB_DIR=/opt/clang/lib
+
+The best way to compile is to use an out of src build; eg for a Debug build,
 and custom LLVM:
 
 % mkdir shamrock_build
 % cd shamrock_build
-% cmake -DLLVM_CONFIG_EXECUTABLE=/opt/llvm/bin/llvm-config -DCMAKE_BUILD_TYPE=Debug <path_to>/shamrock
+% cmake -DCMAKE_BUILD_TYPE=Debug <path_to>/shamrock
 % make
 % sudo make install
-
-If your Clang is installed to a different location than LLVM,
-then define CLANG_INCLUDE_DIR and CLANG_LIB_DIR on the cmake cmd line:
-
-  -DCLANG_INCLUDE_DIR=/opt/clang/include -DCLANG_LIB_DIR=/opt/clang/lib
-
 
 SANITY TESTS
 ============
@@ -81,25 +77,25 @@ Latest Results:
 shamrock_build> make test
 Running tests...
 /usr/bin/ctest --force-new-ctest-process 
-Test project /home/gpitney/shamrock_build
+Test project /home/user/shamrock_build
     Start 1: platform
-1/8 Test #1: platform .........................   Passed    0.11 sec
+1/8 Test #1: platform .........................   Passed    0.02 sec
     Start 2: device
-2/8 Test #2: device ...........................   Passed    0.01 sec
+2/8 Test #2: device ...........................   Passed    0.02 sec
     Start 3: context
-3/8 Test #3: context ..........................   Passed    0.01 sec
+3/8 Test #3: context ..........................   Passed    0.02 sec
     Start 4: commandqueue
-4/8 Test #4: commandqueue .....................   Passed    1.03 sec
+4/8 Test #4: commandqueue .....................   Passed    1.06 sec
     Start 5: mem
-5/8 Test #5: mem ..............................   Passed    0.01 sec
+5/8 Test #5: mem ..............................   Passed    0.02 sec
     Start 6: kernel
-6/8 Test #6: kernel ...........................***Failed    0.90 sec
+6/8 Test #6: kernel ...........................   Passed    3.43 sec
     Start 7: program
-7/8 Test #7: program ..........................   Passed    2.17 sec
+7/8 Test #7: program ..........................   Passed    5.21 sec
     Start 8: builtins
-8/8 Test #8: builtins .........................   Passed    1.53 sec
+8/8 Test #8: builtins .........................   Passed    3.45 sec
 
-88% tests passed, 1 tests failed out of 8
+100% tests passed, 0 tests failed out of 8
 
 PIGLIT TESTS
 ============
@@ -116,14 +112,18 @@ To run OpenCL tests, results in results/all_cl/main
 
 % piglit run tests/all_cl results/all_cl
 
-DEBUGGING OpenCL Kernels:
+Debugging OpenCL Kernels:
 =========================
 
-1. printf:  A builtin function named "debug" maps to the printf symbol in the getBuiltin()
-   callback function, allowing printf from OpenCL kernels.  Alternatively, this mechanism
-   can be used to define aribraty functions to be called back from kernels.  
+1. printf: A prototype has been added to include/CL/cpu.h, allowing printf
+   to be called from OpenCL kernels.
 
-2. gdb:  Using the above getBuiltin() mechanism, a breakpoint can be placed in a callback
-   function at kernel exit, then stepping back into the kernel via gdb, will allow
-   debug of the kernel code (assembly level stepping).
+2. gdb:
+   The kernel is called from Coal::CPUKernelWorkGroup::run(), at the
+   line:
+        p_kernel_func_addr(p_args);
+
+   Placing a breakpoint before this line, one can then put a breakpoint on
+   the kernel function itself, disassemble, and stepi through the
+   assembly code.
 
