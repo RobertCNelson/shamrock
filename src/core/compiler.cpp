@@ -67,7 +67,7 @@ Compiler::~Compiler()
 }
 
 int Compiler::compile(const std::string &options,
-                                llvm::MemoryBuffer *source)
+                           llvm::MemoryBuffer *source)
 {
     /* Set options */
     p_options = options;
@@ -264,10 +264,10 @@ int Compiler::compile(const std::string &options,
 
     const llvm::StringRef s_data(source->getBuffer());
     const llvm::StringRef s_name("<source>");
-    llvm::MemoryBuffer *buffer = 
+    std::unique_ptr<llvm::MemoryBuffer> buffer =
     llvm::MemoryBuffer::getMemBuffer(s_data, s_name);
 
-    prep_opts.addRemappedFile("program.cl", buffer);
+    prep_opts.addRemappedFile("program.cl", buffer.get());
 #endif
 
     //timespec t0, t1;
@@ -287,7 +287,7 @@ int Compiler::compile(const std::string &options,
     //(float)t1.tv_sec-t0.tv_sec+(t1.tv_nsec-t0.tv_nsec)/1e9);
 
     p_log_stream.flush();
-    p_module = Act->takeModule();
+    p_module = Act->takeModule().release();
 
     // uncomment to debug the llvm IR
     // p_module->dump();
