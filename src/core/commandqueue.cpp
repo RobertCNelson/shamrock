@@ -714,18 +714,20 @@ void Event::setStatus(Status status)
         setStatusHelper(status);
 }
 
-bool Event::addDependentEvent(Event *event)
+bool Event::addDependentEvent(Event *event) const
 {
-    pthread_mutex_lock(&p_state_mutex);
+    pthread_mutex_lock(const_cast<pthread_mutex_t *>(&p_state_mutex));
     if (p_status == Event::Complete)
     {
-        pthread_mutex_unlock(&p_state_mutex);
+        pthread_mutex_unlock(const_cast<pthread_mutex_t *>(&p_state_mutex));
         return false;
     }
 
     p_dependent_events.push_back(event);
-    Object::reference();  // retain this event
-    pthread_mutex_unlock(&p_state_mutex);
+
+    Coal::Event *tmp_event = const_cast<Coal::Event *>(this);
+    tmp_event->reference();  // retain this event
+    pthread_mutex_unlock(const_cast<pthread_mutex_t *>(&p_state_mutex));
     return true;
 }
 
