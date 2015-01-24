@@ -64,6 +64,7 @@
 #include <llvm/Transforms/IPO.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/InstIterator.h>
+#include <llvm/IR/DiagnosticPrinter.h>
 
 #include <runtime/stdlib.c.bc.embed.h>
 
@@ -177,7 +178,7 @@ std::vector<llvm::Function *> Program::kernelFunctions(DeviceDependent &dep)
         /*---------------------------------------------------------------------
         * Each node has only one operand : a llvm::Function
         *--------------------------------------------------------------------*/
-        llvm::Value *value = node->getOperand(0);
+        llvm::Value *value = dyn_cast<llvm::ValueAsMetadata>(node->getOperand(0))->getValue();
 
         /*---------------------------------------------------------------------
         * Bug somewhere, don't crash
@@ -459,14 +460,14 @@ cl_int Program::loadBinaries(const unsigned char **data, const size_t *lengths,
         const llvm::StringRef s_data(bitcode);
         const llvm::StringRef s_name("<binary>");
 
-        llvm::MemoryBuffer *buffer = llvm::MemoryBuffer::getMemBuffer(
-                                                        s_data, s_name, false);
+        std::unique_ptr<llvm::MemoryBuffer> buffer =
+	  llvm::MemoryBuffer::getMemBuffer(s_data, s_name, false);
 
         if (!buffer)
             return CL_OUT_OF_HOST_MEMORY;
 
         // Make a module of it
-        ErrorOr<Module *> ModuleOrErr = parseBitcodeFile(buffer,
+        ErrorOr<Module *> ModuleOrErr = parseBitcodeFile(buffer->getMemBufferRef(),
 						  llvm::getGlobalContext());
         if (ModuleOrErr) {
              dep.linked_module = ModuleOrErr.get();
@@ -517,11 +518,12 @@ cl_int Program::build(const char *options,
             const llvm::StringRef s_data(p_source);
             const llvm::StringRef s_name("<source>");
 
-            llvm::MemoryBuffer *buffer = llvm::MemoryBuffer::getMemBuffer(
-                                                               s_data, s_name);
+            std::unique_ptr<llvm::MemoryBuffer> buffer =
+	      llvm::MemoryBuffer::getMemBuffer(s_data, s_name);
 
             // Compile
-			int compile_result = dep.compiler->compile(options ? options : std::string(), buffer);
+	    int compile_result = dep.compiler->compile(options ? options : std::string(),
+						       buffer.get());
 			if (compile_result) 
             //if (! dep.compiler->compile(options ? options : std::string(), 
             //                                                buffer) )
@@ -551,14 +553,14 @@ cl_int Program::build(const char *options,
             const llvm::StringRef s_name("stdlib.bc");
             std::string errMsg;
 
-            llvm::MemoryBuffer *buffer = llvm::MemoryBuffer::getMemBuffer(
-                                                        s_data, s_name, false);
+            std::unique_ptr<llvm::MemoryBuffer> buffer =
+	      llvm::MemoryBuffer::getMemBuffer(s_data, s_name, false);
 
             if (!buffer)
                 return CL_OUT_OF_HOST_MEMORY;
 
             ErrorOr<Module *> ModuleOrErr =
-                    parseBitcodeFile(buffer, llvm::getGlobalContext());
+                    parseBitcodeFile(buffer->getMemBufferRef(), llvm::getGlobalContext());
             Module *stdlib = NULL;
             if (ModuleOrErr) {
                  stdlib =  ModuleOrErr.get();
@@ -569,10 +571,19 @@ cl_int Program::build(const char *options,
             }
 
             // Link
-            if (!stdlib ||
-                llvm::Linker::LinkModules(dep.linked_module, stdlib,
-                                          llvm::Linker::DestroySource, &errMsg))
-            {
+	    LLVMBool Result = false;
+	    if (stdlib) {
+	        std::string Message;
+	        raw_string_ostream Stream(Message);
+	        DiagnosticPrinterRawOStream DP(Stream);
+
+		LLVMBool Result = llvm::Linker::LinkModules(dep.linked_module, stdlib,
+			[&](const DiagnosticInfo &DI) { DI.print(DP); });
+	        if (Result)
+		    errMsg += strdup(Message.c_str());
+            }
+
+            if (!stdlib || !Result)  {
                 dep.compiler->appendLog("link error: ");
                 dep.compiler->appendLog(errMsg);
                 dep.compiler->appendLog("\n");
