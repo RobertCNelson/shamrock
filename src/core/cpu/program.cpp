@@ -153,12 +153,11 @@ bool CPUProgram::initJIT()
     // Create the JIT
     std::string err;
 
-    p_jit = llvm::EngineBuilder(p_module)
-                           .setErrorStr(&err)
-                           .setUseMCJIT(true)
-                           .setMCJITMemoryManager(new ClientMemoryManager())
-                           .create();
-
+    p_jit = llvm::EngineBuilder(std::unique_ptr<Module>(p_module))
+                            .setErrorStr(&err)
+                            .setMCJITMemoryManager(std::unique_ptr<ClientMemoryManager>
+						   (new ClientMemoryManager()))
+                            .create();
     if (!p_jit)
     {
         std::cout << "Unable to create a JIT: " << err << std::endl;
