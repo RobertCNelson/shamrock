@@ -460,7 +460,6 @@ boost::tuple<uint,uint,uint> Kernel::reqdWorkGroupSize(llvm::Module *module) con
         /*---------------------------------------------------------------------
         * Each node has only one operand : a llvm::Function
         *--------------------------------------------------------------------*/
-	// future DEBUG point, we're not sure this works.
 	llvm::Value *value = llvm::dyn_cast<llvm::ValueAsMetadata>(node->getOperand(0))->getValue();
 
 
@@ -475,9 +474,8 @@ boost::tuple<uint,uint,uint> Kernel::reqdWorkGroupSize(llvm::Module *module) con
         if (node->getNumOperands() <= 1) return zeros;
 
         llvm::MDNode *meta = llvm::cast<llvm::MDNode>(node->getOperand(1));
-	llvm::Value *value_tmp = dyn_cast<ValueAsMetadata>(meta->getOperand(0))->getValue();
-        if (meta->getNumOperands() == 4 &&
-	    value_tmp->getName().str() == std::string("reqd_work_group_size"))
+        std::string meta_name = llvm::cast<MDString>(meta->getOperand(0))->getString().str();
+        if ((meta->getNumOperands() == 4) && (meta_name == "reqd_work_group_size"))
         {
 	    // See comments in http://llvm.org/docs/doxygen/html/classllvm_1_1ConstantInt.html
 	    auto x = llvm::mdconst::dyn_extract<ConstantInt>(meta->getOperand(1))->getLimitedValue();
