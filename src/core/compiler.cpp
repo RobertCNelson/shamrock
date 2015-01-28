@@ -46,7 +46,7 @@
 #include <clang/CodeGen/CodeGenAction.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Support/Host.h>
-#include <llvm/Support/MemoryBuffer.h> // ASW
+#include <llvm/Support/MemoryBuffer.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <sys/stat.h>
@@ -85,6 +85,7 @@ int Compiler::compile(const std::string &options,
     codegen_opts.setDebugInfo(clang::CodeGenOptions::NoDebugInfo);
     codegen_opts.AsmVerbose = true;
     codegen_opts.CodeModel = "default";
+    codegen_opts.ThreadModel = "posix";
 
     // level 3 is too much for the pocl transformations.
     codegen_opts.OptimizationLevel = 2;
