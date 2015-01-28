@@ -583,7 +583,7 @@ cl_int Program::build(const char *options,
 		    errMsg += strdup(Message.c_str());
             }
 
-            if (!stdlib || !Result)  {
+            if (!stdlib || Result)  {
                 dep.compiler->appendLog("link error: ");
                 dep.compiler->appendLog(errMsg);
                 dep.compiler->appendLog("\n");
