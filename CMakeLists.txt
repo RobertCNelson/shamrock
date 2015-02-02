@@ -5,6 +5,7 @@
 #    -DBUILD_TESTS=ON
 # Note PROJECT=shamrock is default.
 cmake_minimum_required(VERSION 2.6)
+cmake_policy(SET CMP0022 OLD)
 
 # Project Options:
 OPTION(BUILD_TESTS "Set to ON to build minimal OpenCL tests" ON)

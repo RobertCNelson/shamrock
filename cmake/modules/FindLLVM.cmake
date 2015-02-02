@@ -80,7 +80,7 @@ endif(NOT SHAMROCK_BUILD)
 if (HAWKING_CROSS_COMPILE)
   set(LLVM_CONFIG_NAME llvm-config-host)
 else()
-  set(LLVM_CONFIG_NAME llvm-config)
+  set(LLVM_CONFIG_NAME llvm-config-3.5)
 endif()
 
 find_program(LLVM_CONFIG_EXECUTABLE
@@ -98,7 +98,7 @@ exec_program(${LLVM_CONFIG_EXECUTABLE} ARGS --version OUTPUT_VARIABLE REPORTED_L
 
 STRING(REPLACE "." ""  REPORTED_LLVM_VERSION ${REPORTED_LLVM_VERSION})
 if(NOT ${REPORTED_LLVM_VERSION} STREQUAL ${LLVM_VERSION})
-    message(FATAL_ERROR "ERROR!: llvm-config reports different version that what is expected \(${REPORTED_LLVM_VERSION} != ${LLVM_VERSION}"\))
+    message(FATAL_ERROR "ERROR!: llvm-config reports different version that what is expected \(${REPORTED_LLVM_VERSION} != ${LLVM_VERSION}" \))
 endif()
 
 # Macro to build up list of llvm libraries
