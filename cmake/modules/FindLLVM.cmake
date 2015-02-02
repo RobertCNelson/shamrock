@@ -45,7 +45,7 @@ if(IS_X86_64_HOST)
 endif()
 
 # Version of LLVM we are currently based off of
-set(LLVM_VERSION 350)
+set(LLVM_VERSION 360)
 
 if (NOT SHAMROCK_BUILD)
 # Set up llvm paths, using environment variables if defined
@@ -98,7 +98,7 @@ exec_program(${LLVM_CONFIG_EXECUTABLE} ARGS --version OUTPUT_VARIABLE REPORTED_L
 
 STRING(REPLACE "." ""  REPORTED_LLVM_VERSION ${REPORTED_LLVM_VERSION})
 if(NOT ${REPORTED_LLVM_VERSION} STREQUAL ${LLVM_VERSION})
-    message(FATAL_ERROR "ERROR!: llvm-config reports different version that what is expected \(${REPORTED_LLVM_VERSION} != ${LLVM_VERSION}"\))
+    message(FATAL_ERROR  "ERROR!: llvm-config reports different version that what is expected \(${REPORTED_LLVM_VERSION} != ${LLVM_VERSION}" \))
 endif()
 
 # Macro to build up list of llvm libraries
@@ -150,7 +150,7 @@ elseif(HAWKING_BUILD OR SHARMROCK_BUILD)
   set (LLVM_LIB_TARGET ARM)
 endif()
 
-exec_program(${LLVM_CONFIG_EXECUTABLE} ARGS --libs  ${LLVM_LIB_TARGET} asmparser native bitwriter tablegen jit mcjit debuginfo interpreter linker irreader instrumentation ipo mcdisassembler option objcarcopts profiledata OUTPUT_VARIABLE LLVM_LIBS_CORE )
+exec_program(${LLVM_CONFIG_EXECUTABLE} ARGS --libs  ${LLVM_LIB_TARGET} asmparser native bitwriter tablegen mcjit debuginfo interpreter linker irreader instrumentation ipo mcdisassembler option objcarcopts profiledata OUTPUT_VARIABLE LLVM_LIBS_CORE )
 MESSAGE(STATUS "LLVM core libs: " ${LLVM_LIBS_CORE})
 
 if(LLVM_INCLUDE_DIR)

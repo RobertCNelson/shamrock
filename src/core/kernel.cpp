@@ -45,7 +45,6 @@
 #include <cstdlib>
 #include <boost/tuple/tuple.hpp>
 
-#include <llvm/Support/Casting.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/DerivedTypes.h>
@@ -55,6 +54,8 @@
 
 
 using namespace Coal;
+using namespace llvm;
+
 Kernel::Kernel(Program *program)
 : Object(Object::T_Kernel, program), p_has_locals(false), wi_alloca_size(0)
 {
@@ -459,7 +460,8 @@ boost::tuple<uint,uint,uint> Kernel::reqdWorkGroupSize(llvm::Module *module) con
         /*---------------------------------------------------------------------
         * Each node has only one operand : a llvm::Function
         *--------------------------------------------------------------------*/
-        llvm::Value *value = node->getOperand(0);
+	llvm::Value *value = llvm::dyn_cast<llvm::ValueAsMetadata>(node->getOperand(0))->getValue();
+
 
         /*---------------------------------------------------------------------
         * Bug somewhere, don't crash
@@ -472,17 +474,19 @@ boost::tuple<uint,uint,uint> Kernel::reqdWorkGroupSize(llvm::Module *module) con
         if (node->getNumOperands() <= 1) return zeros;
 
         llvm::MDNode *meta = llvm::cast<llvm::MDNode>(node->getOperand(1));
-        if (meta->getNumOperands() == 4 &&
-            meta->getOperand(0)->getName().str() == std::string("reqd_work_group_size"))
+        std::string meta_name = llvm::cast<MDString>(meta->getOperand(0))->getString().str();
+        if ((meta->getNumOperands() == 4) && (meta_name == "reqd_work_group_size"))
         {
-            uint x = llvm::cast<llvm::ConstantInt> (meta->getOperand(1))->getValue().getLimitedValue();
-            uint y = llvm::cast<llvm::ConstantInt> (meta->getOperand(2))->getValue().getLimitedValue();
-            uint z = llvm::cast<llvm::ConstantInt> (meta->getOperand(3))->getValue().getLimitedValue();
+	    // See comments in http://llvm.org/docs/doxygen/html/classllvm_1_1ConstantInt.html
+	    auto x = llvm::mdconst::dyn_extract<ConstantInt>(meta->getOperand(1))->getLimitedValue();
+	    auto y = llvm::mdconst::dyn_extract<ConstantInt>(meta->getOperand(2))->getLimitedValue();
+	    auto z = llvm::mdconst::dyn_extract<ConstantInt>(meta->getOperand(3))->getLimitedValue();
 
             return boost::tuple<uint,uint,uint> (x,y,z);
         }
         return zeros;
     }
+    return zeros;
 }
 
 

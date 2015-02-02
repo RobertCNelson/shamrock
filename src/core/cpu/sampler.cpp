@@ -328,7 +328,7 @@ void CPUKernelWorkGroup::linear2D(T *result, float a, float b, float c, int i0, 
     vec4_add(result, accum);
 }
 
-#if __has_builtin(__builtin_shufflevector)
+#if __has_builtin(__builtin_shufflevector) && defined ( __x86_64__ )
     #define shuffle4(rs, a, b, x, y, z, w) \
         *(__v4sf *)rs = __builtin_shufflevector(*(__v4sf *)a, *(__v4sf *)b, \
                                                 x, y, z, w)

@@ -444,7 +444,7 @@ class Event : public Object
          * no need to add and return false.
          * \param event the event to be notified
          */
-        bool addDependentEvent(Event *event);
+        bool addDependentEvent(Event *event) const;
 
         /**
          * \brief Remove event from p_wait_events, which should be waited on
@@ -480,7 +480,7 @@ class Event : public Object
         // p_wait_events: I should wait after these events complete
         // p_dependent_events: when I complete, I should notify these events
         std::list<const Event *>   p_wait_events;
-        std::vector<Event *> p_dependent_events;
+        mutable std::vector<Event *> p_dependent_events;
 };
 
 }

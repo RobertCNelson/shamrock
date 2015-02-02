@@ -93,9 +93,13 @@ Object::Type Object::type() const
     return p_type;
 }
 
+#pragma clang diagnostic ignored "-Wtautological-undefined-compare"
+#pragma GCC diagnostic ignored "-Wtautological-undefined-compare"
+
 bool Object::isA(Object::Type type) const
 {
     // Check for null values
+    // NOTE: in clang 3.6+, this warns: we keep the code (as harmless), but suppress the warning.
     if (this == 0)
         return false;
 
