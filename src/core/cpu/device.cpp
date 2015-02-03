@@ -357,6 +357,9 @@ cl_int CPUDevice::info(cl_device_info param_name,
         cl_command_queue_properties cl_command_queue_properties_var;
         cl_platform_id cl_platform_id_var;
         size_t work_dims[MAX_WORK_DIMS];
+        cl_device_id cl_device_id_var;
+        cl_device_partition_property cl_device_partition_property_var;
+        cl_device_affinity_domain cl_device_affinity_domain_var;
     };
 
     switch (param_name)
@@ -451,6 +454,14 @@ cl_int CPUDevice::info(cl_device_info param_name,
             break;
 
         case CL_DEVICE_IMAGE3D_MAX_DEPTH:
+            SIMPLE_ASSIGN(size_t, 0);           //images not supported
+            break;
+
+        case CL_DEVICE_IMAGE_MAX_BUFFER_SIZE:
+            SIMPLE_ASSIGN(size_t, 0);           //images not supported
+            break;
+
+        case CL_DEVICE_IMAGE_MAX_ARRAY_SIZE:
             SIMPLE_ASSIGN(size_t, 0);           //images not supported
             break;
 
@@ -554,6 +565,10 @@ cl_int CPUDevice::info(cl_device_info param_name,
             SIMPLE_ASSIGN(cl_bool, CL_TRUE);
             break;
 
+        case CL_DEVICE_LINKER_AVAILABLE:
+            SIMPLE_ASSIGN(cl_bool, CL_TRUE);
+            break;
+
         case CL_DEVICE_EXECUTION_CAPABILITIES:
             SIMPLE_ASSIGN(cl_device_exec_capabilities, CL_EXEC_KERNEL |
                           CL_EXEC_NATIVE_KERNEL);
@@ -564,6 +579,18 @@ cl_int CPUDevice::info(cl_device_info param_name,
                           CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE |
                           CL_QUEUE_PROFILING_ENABLE);
             break;
+
+        case CL_DEVICE_BUILT_IN_KERNELS:
+            STRING_ASSIGN("");
+            break;
+
+        case CL_DEVICE_PRINTF_BUFFER_SIZE:
+            SIMPLE_ASSIGN(size_t, ONE_MEGABYTE);
+	    break;
+
+        case CL_DEVICE_PREFERRED_INTEROP_USER_SYNC:
+            SIMPLE_ASSIGN(cl_bool, CL_TRUE);
+	    break;
 
         case CL_DEVICE_NAME:
             value_length = p_device_name.size() + 1;
@@ -583,7 +610,7 @@ cl_int CPUDevice::info(cl_device_info param_name,
             break;
 
         case CL_DEVICE_VERSION:
-            STRING_ASSIGN("OpenCL 1.1 " COAL_VERSION);
+            STRING_ASSIGN("OpenCL 1.2 " COAL_VERSION);
             break;
 
         case CL_DEVICE_EXTENSIONS:
@@ -640,7 +667,24 @@ cl_int CPUDevice::info(cl_device_info param_name,
             break;
 
         case CL_DEVICE_OPENCL_C_VERSION:
-            STRING_ASSIGN("OpenCL C 1.1 LLVM " LLVM_VERSION);
+            STRING_ASSIGN("OpenCL C 1.2 LLVM " LLVM_VERSION);
+            break;
+
+	    /*  Until device fission added, these return nominal values: */
+        case CL_DEVICE_PARENT_DEVICE:
+	    SIMPLE_ASSIGN(cl_device_id, NULL);
+            break;
+        case CL_DEVICE_PARTITION_MAX_SUB_DEVICES:
+            SIMPLE_ASSIGN(cl_uint, 0);
+            break;
+        case CL_DEVICE_PARTITION_PROPERTIES:
+            SIMPLE_ASSIGN(cl_device_partition_property, 0);
+            break;
+        case CL_DEVICE_PARTITION_AFFINITY_DOMAIN:
+            SIMPLE_ASSIGN(cl_device_affinity_domain, 0);
+            break;
+        case CL_DEVICE_REFERENCE_COUNT:
+            SIMPLE_ASSIGN(cl_uint, 1);
             break;
 
         default:
