@@ -124,7 +124,7 @@ set(CLC_BUILTINS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/builtins)
 endif()
 
 add_subdirectory(src)
-add_subdirectory(util)
+# add_subdirectory(util)
 if (NOT SHAMROCK_BUILD)
 add_subdirectory(clocl)
 add_subdirectory(${OCL_EXAMPLES_DIR} ${CMAKE_CURRENT_BINARY_DIR}/examples)
@@ -140,12 +140,14 @@ IF (BUILD_TESTS)
 ENDIF (BUILD_TESTS)
 endif()
 
-# install OCL builtin headers in opencl-headers package installation directory.
+# install OCL builtin and extension headers in opencl-headers package installation directory.
+# TODO: We should require that the Khronos OpenCL headers have already been installed there.
 if (SHAMROCK_BUILD)
-install(DIRECTORY include DESTINATION /usr ${OCL_DPERMS})
-install(DIRECTORY include/CL DESTINATION /usr/include ${OCL_DPERMS})
+#install(DIRECTORY include DESTINATION /usr ${OCL_DPERMS})
+#install(DIRECTORY include/CL DESTINATION /usr/include ${OCL_DPERMS})
 install(FILES include/clc.h DESTINATION /usr/include/CL )
 install(FILES include/cpu.h DESTINATION /usr/include/CL )
+install(FILES include/CL/cl_ext.h DESTINATION /usr/include/CL )
 endif (SHAMROCK_BUILD)
 
 # Following is TI product specific:
