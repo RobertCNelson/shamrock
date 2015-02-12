@@ -29,6 +29,7 @@
 #include "platform.h"
 #include "icd.h"
 
+// TODO: Ensure this matches OCL 1.2 disptach table:
 void * dispatch_table[] = 
 {
     (void*)   clGetPlatformIDs,
@@ -120,9 +121,37 @@ void * dispatch_table[] =
     (void*)   clEnqueueReadBufferRect,
     (void*)   clEnqueueWriteBufferRect,
     (void*)   clEnqueueCopyBufferRect,
-    (void*)   0, //clCreateSubDevicesEXT,
-    (void*)   0, //clRetainDeviceEXT,
-    (void*)   0, //clReleaseDeviceEXT
+
+    (void *)  0, //clCreateEventFromGLsyncKHR;
+
+    (void *)  0, //clCreateSubDevices;
+    (void *)  0, //clRetainDevice;
+    (void *)  0, //clReleaseDevice;
+    (void *)  0, // clCreateImage,
+    (void *)  0, // clCreateProgramWithBuiltInKernels;
+    (void *)  0, // clCompileProgram;
+    (void *)  0, // clLinkProgram;
+    (void *)  0, // clUnloadPlatformCompiler;
+    (void *)  0, // clGetKernelArgInfo;
+    (void *)  0, // clEnqueueFillBuffer;
+    (void *)  0, // clEnqueueFillImage;
+    (void *)  0, // clEnqueueMigrateMemObjects;
+    (void *)  0, // clEnqueueMarkerWithWaitList;
+    (void *)  0, // clEnqueueBarrierWithWaitList;
+    (void *)  0, // clGetExtensionFunctionAddressForPlatform;
+    (void *)  0, // clCreateFromGLTexture;
+
+    (void *)  0, // clGetDeviceIDsFromD3D11KHR;
+    (void *)  0, // clCreateFromD3D11BufferKHR;
+    (void *)  0, // clCreateFromD3D11Texture2DKHR;
+    (void *)  0, // clCreateFromD3D11Texture3DKHR;
+    (void *)  0, // clCreateFromDX9MediaSurfaceKHR;
+    (void *)  0, // clEnqueueAcquireD3D11ObjectsKHR;
+    (void *)  0, // clEnqueueReleaseD3D11ObjectsKHR;
+
+    (void *)  0, // clGetDeviceIDsFromDX9MediaAdapterKHR;
+    (void *)  0, // clEnqueueAcquireDX9MediaSurfacesKHR;
+    (void *)  0, // clEnqueueReleaseDX9MediaSurfacesKHR;
 };
 
 
