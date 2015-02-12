@@ -13,6 +13,9 @@ set(OPENCL_TESTS_SOURCE
     test_builtins.cpp
     )
 
+# Quiet warnings about deprecated OCL APIs:
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+
 add_executable(tests ${OPENCL_TESTS_SOURCE})
 target_link_libraries(tests OpenCL z ${CHECK_LIBRARIES} pthread)
 
