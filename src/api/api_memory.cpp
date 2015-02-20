@@ -125,6 +125,44 @@ clCreateSubBuffer(cl_mem                buffer,
 }
 
 cl_mem
+clCreateImage(cl_context              context,
+              cl_mem_flags            flags,
+              const cl_image_format * image_format,
+              const cl_image_desc *   image_desc,
+              void *                  host_ptr,
+              cl_int *                errcode_ret)
+{
+    cl_int dummy_errcode;
+    cl_mem image;
+
+    if (!errcode_ret)
+        errcode_ret = &dummy_errcode;
+
+    if (!image_desc) {
+        *errcode_ret = CL_INVALID_IMAGE_DESCRIPTOR;
+        return 0;
+    }
+
+    size_t image_width     = image_desc->image_width;
+    size_t image_height    = image_desc->image_height;
+    size_t image_row_pitch = image_desc->image_row_pitch;
+    size_t image_depth     = image_desc->image_depth;
+    size_t image_slice_pitch = image_desc->image_slice_pitch;
+
+    /* Just pass on to corresponding clCreateImage2D or clCreateImage3D functions: */
+    if (image_depth == 1) {
+        image = clCreateImage2D(context, flags, image_format, image_width, image_height, image_row_pitch,
+                                host_ptr, errcode_ret);
+    }
+    else {
+        image = clCreateImage3D(context, flags, image_format, image_width, image_height, image_depth,
+                                image_row_pitch, image_slice_pitch, host_ptr, errcode_ret);
+    }
+    return image;
+}
+
+
+cl_mem
 clCreateImage2D(cl_context              context,
                 cl_mem_flags            flags,
                 const cl_image_format * image_format,
