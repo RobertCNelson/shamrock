@@ -201,6 +201,7 @@ set (LIBS
         z
         tinfo
         m
+        ffi
 )
 
 if (SHANNON_BUILD)

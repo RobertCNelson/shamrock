@@ -80,7 +80,7 @@ endif(NOT SHAMROCK_BUILD)
 if (HAWKING_CROSS_COMPILE)
   set(LLVM_CONFIG_NAME llvm-config-host)
 else()
-  set(LLVM_CONFIG_NAME llvm-config)
+  set(LLVM_CONFIG_NAME llvm-config-3.6)
 endif()
 
 find_program(LLVM_CONFIG_EXECUTABLE

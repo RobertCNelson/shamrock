@@ -23,7 +23,7 @@ endforeach()
 add_custom_target(generate_bc_files DEPENDS ${BC_SOURCES})
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/builtins.lib
-          COMMAND llvm-link
+          COMMAND llvm-link-3.6
             -o ${CMAKE_CURRENT_BINARY_DIR}/builtins.lib ${BC_SOURCES}
           DEPENDS ${BC_SOURCES} )
 
