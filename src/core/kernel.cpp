@@ -218,6 +218,14 @@ cl_int Kernel::addFunction(DeviceInterface *device, llvm::Function *function,
                 vec_dim = v_type->getNumElements();
                 arg_type = v_type->getElementType();
             }
+            else if (arg_type->isArrayTy())
+            {
+                // We treat this as a vector as well.
+                llvm::ArrayType *a_type = llvm::cast<llvm::ArrayType>(arg_type);
+
+                vec_dim = a_type->getNumElements();
+                arg_type = a_type->getElementType();
+            }
 
             // Get type kind
             if (arg_type->isFloatTy())
@@ -250,6 +258,12 @@ cl_int Kernel::addFunction(DeviceInterface *device, llvm::Function *function,
                     kind = Arg::Int64;
                 }
             }
+            else if (arg_type->isStructTy())
+            {
+                // We shouldn't need to look into the struct layout, since we
+                // already know the target size and alignment.
+                kind = Arg::StructType;
+            }
         }
 
         // Check if we recognized the type
@@ -257,7 +271,7 @@ cl_int Kernel::addFunction(DeviceInterface *device, llvm::Function *function,
             return CL_INVALID_KERNEL_DEFINITION;
 
         // Create arg
-        Arg *a= new Arg(vec_dim, file, kind, target_align);
+        Arg *a= new Arg(vec_dim, file, kind, target_align, target_size);
 
         // If we also have a function registered, check for signature compliance
         if (!append && (a) != p_args[i])
@@ -560,8 +574,8 @@ cl_int Kernel::workGroupInfo(DeviceInterface *device,
 /*
  * Kernel::Arg
  */
-Kernel::Arg::Arg(unsigned short vec_dim, File file, Kind kind, size_t targ_align)
-  : p_vec_dim(vec_dim), p_file(file), p_kind(kind), p_targ_align(targ_align), p_data(0), p_defined(false),
+Kernel::Arg::Arg(unsigned short vec_dim, File file, Kind kind, size_t targ_align, size_t targ_size)
+  : p_vec_dim(vec_dim), p_file(file), p_kind(kind), p_targ_align(targ_align), p_targ_size(targ_size), p_data(0), p_defined(false),
   p_runtime_alloc(0)
 { }
 
@@ -617,6 +631,9 @@ size_t Kernel::Arg::valueSize() const
         case Buffer:
         case Image2D:
         case Image3D: return sizeof(cl_mem);
+        case StructType:
+	      assert ( p_targ_size > 0);
+	      return p_targ_size;
     }
 
     return 0;

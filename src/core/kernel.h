@@ -118,7 +118,8 @@ class Kernel : public Object
                     Buffer,       /*!< \brief \c Coal::Buffer or \c Coal::SubBuffer, <tt>type*</tt> in LLVM */
                     Image2D,      /*!< \brief \c Coal::Image2D, <tt>\%struct.image2d*</tt> in LLVM */
                     Image3D,      /*!< \brief \c Coal::Image3D, <tt>\%struct.image3d*</tt> in LLVM */
-                    Sampler       /*!< \brief \c Coal::Sampler::bitfield(), \c i32 in LLVM, see \c Coal::Kernel::setArg() */
+                    Sampler,      /*!< \brief \c Coal::Sampler::bitfield(), \c i32 in LLVM, see \c Coal::Kernel::setArg() */
+                    StructType    /*!< \brief \c struct, \c In LLVM may be union or struct */
                 };
 
                 /**
@@ -128,7 +129,8 @@ class Kernel : public Object
                  * \param kind \c Kind of the argument
                  * \param kind \c Argument type alignment (ABI specific)
                  */
-                Arg(unsigned short vec_dim, File file, Kind kind, size_t targ_align);
+                Arg(unsigned short vec_dim, File file, Kind kind, size_t targ_align,
+                    size_t targ_size);
                 ~Arg();
 
                 /**
@@ -208,7 +210,8 @@ class Kernel : public Object
                 void *p_data;
                 bool p_defined;
                 size_t p_runtime_alloc;
-		size_t p_targ_align;
+                size_t p_targ_align;
+                size_t p_targ_size;
         };
 
         /**
