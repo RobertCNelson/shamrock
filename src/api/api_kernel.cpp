@@ -203,6 +203,22 @@ clGetKernelInfo(cl_kernel       kernel,
 }
 
 cl_int
+clGetKernelArgInfo(cl_kernel          kernel,
+                   cl_uint            arg_indx,
+                   cl_kernel_arg_info param_name,
+                   size_t             param_value_size,
+                   void *             param_value,
+                   size_t *           param_value_size_ret)
+{
+    if (!kernel->isA(Coal::Object::T_Kernel))
+        return CL_INVALID_KERNEL;
+
+    return kernel->argInfo(arg_indx,param_name, param_value_size,
+			   param_value, param_value_size_ret);
+}
+
+
+cl_int
 clGetKernelWorkGroupInfo(cl_kernel                  kernel,
                          cl_device_id               device,
                          cl_kernel_work_group_info  param_name,

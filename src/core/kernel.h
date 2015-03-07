@@ -284,6 +284,20 @@ class Kernel : public Object
                     void *param_value,
                     size_t *param_value_size_ret) const;
 
+        /**
+         * \brief Return stored information about this kernel's arguments, previously
+         * \brief retrieved using fillArgsInfo().
+         */
+        cl_int argInfo(cl_uint arg_indx,
+                       cl_kernel_info param_name,
+                       size_t param_value_size,
+                       void *param_value,
+                       size_t *param_value_size_ret) const;
+
+        /**
+         * \brief Fill the ArgInfo struct vector with data from the module's metadata.
+         */
+        void fillArgsInfo(llvm::Module *module) const;
 
         /**
          * \brief Get performance hints and device-specific data about this kernel
@@ -320,6 +334,15 @@ class Kernel : public Object
         const DeviceDependent &deviceDependent(DeviceInterface *device) const;
         DeviceDependent &deviceDependent(DeviceInterface *device);
 
+        struct ArgInfo
+        {
+            cl_kernel_arg_address_qualifier address_qualifier;
+            cl_kernel_arg_access_qualifier  access_qualifier;
+            std::string                     type_name;
+            cl_kernel_arg_type_qualifier    type_qualifier;
+            std::string                     name;
+        };
+        mutable std::vector<ArgInfo> p_argsInfo;
 };
 
 }

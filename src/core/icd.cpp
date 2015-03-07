@@ -132,7 +132,7 @@ void * dispatch_table[] =
     (void *)  0, // clCompileProgram;
     (void *)  0, // clLinkProgram;
     (void *)  0, // clUnloadPlatformCompiler;
-    (void *)  0, // clGetKernelArgInfo;
+    (void *)  clGetKernelArgInfo,
     (void *)  0, // clEnqueueFillBuffer;
     (void *)  0, // clEnqueueFillImage;
     (void *)  0, // clEnqueueMigrateMemObjects;

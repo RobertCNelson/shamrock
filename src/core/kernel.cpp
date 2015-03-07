@@ -282,6 +282,8 @@ cl_int Kernel::addFunction(DeviceInterface *device, llvm::Function *function,
             p_args.push_back(a);
     }
 
+    fillArgsInfo(module);
+
     dep.kernel = device->createDeviceKernel(this, dep.function);
     p_device_dependent.push_back(dep);
 
@@ -458,6 +460,224 @@ cl_int Kernel::info(cl_kernel_info param_name,
 
     return CL_SUCCESS;
 }
+
+cl_int Kernel::argInfo(cl_uint arg_indx,
+                       cl_kernel_info param_name,
+                       size_t param_value_size,
+                       void *param_value,
+                       size_t *param_value_size_ret) const
+{
+    void *value = 0;
+    size_t value_length = 0;
+
+    union {
+        cl_kernel_arg_address_qualifier cl_kernel_arg_address_qualifier_var;
+        cl_kernel_arg_access_qualifier  cl_kernel_arg_access_qualifier_var;
+        cl_kernel_arg_type_qualifier    cl_kernel_arg_type_qualifier_var;
+    };
+
+    if (!p_argsInfo.size()) {
+        return (CL_KERNEL_ARG_INFO_NOT_AVAILABLE);
+    }
+
+    if (arg_indx >= p_argsInfo.size()) {
+        return (CL_INVALID_ARG_INDEX);
+    }
+
+    // Pull info from ArgInfo struct private member previously stored during
+    // the Kernel::addFunction() call.
+    switch (param_name)
+    {
+        case CL_KERNEL_ARG_ADDRESS_QUALIFIER:
+            SIMPLE_ASSIGN(cl_kernel_arg_address_qualifier,
+                          p_argsInfo[arg_indx].address_qualifier);
+            break;
+
+        case CL_KERNEL_ARG_ACCESS_QUALIFIER:
+            SIMPLE_ASSIGN(cl_kernel_arg_access_qualifier,
+                          p_argsInfo[arg_indx].access_qualifier);
+            break;
+
+        case CL_KERNEL_ARG_TYPE_NAME:
+            MEM_ASSIGN((p_argsInfo[arg_indx].type_name.size() + 1),
+                       p_argsInfo[arg_indx].type_name.c_str());
+            break;
+
+        case CL_KERNEL_ARG_TYPE_QUALIFIER:
+            SIMPLE_ASSIGN(cl_kernel_arg_type_qualifier,
+                          p_argsInfo[arg_indx].type_qualifier);
+            break;
+
+        case CL_KERNEL_ARG_NAME:
+            MEM_ASSIGN((p_argsInfo[arg_indx].name.size() + 1),
+                       p_argsInfo[arg_indx].name.c_str());
+            break;
+
+        default:
+            return CL_INVALID_VALUE;
+    }
+
+    if (param_value && param_value_size < value_length)
+        return CL_INVALID_VALUE;
+
+    if (param_value_size_ret)
+        *param_value_size_ret = value_length;
+
+    if (param_value)
+        std::memcpy(param_value, value, value_length);
+
+    return CL_SUCCESS;
+}
+
+/* Example OpenL kernel MetaData to parse:
+!opencl.kernels = !{!0, !7}
+
+!0 = !{void (float addrspace(1)*, float addrspace(1)*, float)* @kernel1, !1, !2, !3, !4, !5, !6}
+!1 = !{!"kernel_arg_addr_space", i32 1, i32 1, i32 0}
+!2 = !{!"kernel_arg_access_qual", !"none", !"none", !"none"}
+!3 = !{!"kernel_arg_type", !"float*", !"float*", !"float"}
+!4 = !{!"kernel_arg_base_type", !"float*", !"float*", !"float"}
+!5 = !{!"kernel_arg_type_qual", !"", !"", !""}
+!6 = !{!"kernel_arg_name", !"a", !"b", !"f"}
+!7 = !{void (i32 addrspace(1)*)* @kernel2, !8, !9, !10, !11, !12, !13}
+!8 = !{!"kernel_arg_addr_space", i32 1}
+!9 = !{!"kernel_arg_access_qual", !"none"}
+!10 = !{!"kernel_arg_type", !"uint*"}
+!11 = !{!"kernel_arg_base_type", !"uint*"}
+!12 = !{!"kernel_arg_type_qual", !""}
+!13 = !{!"kernel_arg_name", !"buf"}
+*/
+void  Kernel::fillArgsInfo(llvm::Module *module) const
+{
+     const struct ArgInfo defaultArgInfo
+     {
+            .address_qualifier = CL_KERNEL_ARG_ADDRESS_PRIVATE,
+            .access_qualifier = CL_KERNEL_ARG_ACCESS_NONE,
+            .type_name = "",
+            .type_qualifier =  CL_KERNEL_ARG_TYPE_NONE,
+            .name = ""
+     };
+
+    if (p_argsInfo.size() > 0) {
+        // Already filled, so just return;
+        return;
+    }
+
+    llvm::NamedMDNode *ocl_kernels = module->getNamedMetadata("opencl.kernels");
+
+    if (!ocl_kernels) {
+        return;
+    }
+
+    // Iterate over each unnamed kernel node:
+    for (NamedMDNode::op_iterator kernNode = ocl_kernels->op_begin(), E = ocl_kernels->op_end();
+         kernNode != E; kernNode++)
+    {
+        llvm::MDNode *kernelNode = *kernNode;
+        // If only one operand, that's the kernel function type, and there is no param info, so skip:
+        if (1 == kernelNode->getNumOperands()) {
+            continue;
+        }
+
+        // Look for the kernel prototype with the name matching ours:
+        MDNode::op_iterator node = kernelNode->op_begin();
+        llvm::Function *kern_signature =
+          llvm::cast<llvm::Function>(dyn_cast<llvm::ValueAsMetadata>(*node)->getValue());
+        std::string kern_name = kern_signature->getName().str();
+        if (p_name != kern_name) {
+            continue;
+        }
+
+        // Size the p_argsInfo vector to known number of args:
+        p_argsInfo.resize(p_args.size(), defaultArgInfo);
+        ++node;  // skip over the prototype
+        for (MDNode::op_iterator endNode = (*kernNode)->op_end(); node != endNode; node++) {
+            llvm::MDNode *meta_node = llvm::cast<llvm::MDNode>(*node);
+            // Parse each node: get it's name, string of values, and store in p_argsInfo:
+
+            // This parsing adapted from Mesa/clover:
+            // http://patchwork.freedesktop.org/patch/40995/
+            // and reference to pocl
+            const uint num_ope = meta_node->getNumOperands();
+            if ((num_ope - 1) != p_argsInfo.size()) {
+                // this could be a different attribute, like "reqd_work_group_size"
+                continue;
+            }
+            // metadata name
+            llvm::MDString *md_name =
+                        llvm::cast<llvm::MDString>(meta_node->getOperand(0));
+            std::string name = md_name->getString().str();
+
+            // metadata value
+            for (uint k = 1; k < num_ope; ++k) {
+                llvm::Value *value = NULL;
+                if (isa<ValueAsMetadata>(meta_node->getOperand(k)))
+                  value = dyn_cast<ValueAsMetadata>(meta_node->getOperand(k))->getValue();
+                else if (isa<ConstantAsMetadata>(meta_node->getOperand(k)))
+                  value = dyn_cast<ConstantAsMetadata>(meta_node->getOperand(k))->getValue();
+
+                ArgInfo &arg_info = p_argsInfo[k-1];
+
+                if (name == "kernel_arg_addr_space") {
+                    int v = (llvm::cast<llvm::ConstantInt>(value))->getLimitedValue();
+
+                    switch(v) {
+                        // Note: see src/core/kernel.h for mapping.
+                    case 0:
+                        arg_info.address_qualifier = CL_KERNEL_ARG_ADDRESS_PRIVATE;
+                        break;
+                     case 1:
+                        arg_info.address_qualifier = CL_KERNEL_ARG_ADDRESS_GLOBAL;
+                        break;
+                     case 2:
+                        arg_info.address_qualifier = CL_KERNEL_ARG_ADDRESS_LOCAL;
+                        break;
+                     case 3:
+                        arg_info.address_qualifier = CL_KERNEL_ARG_ADDRESS_CONSTANT;
+                        break;
+                     }
+                   }
+                   else {
+                      llvm::MDString *m = llvm::cast<MDString>(meta_node->getOperand(k));
+                      std::string v = m->getString().str();
+
+                      if (name == "kernel_arg_access_qual") {
+                         if (v == "read_only")
+                            arg_info.access_qualifier =
+                                                  CL_KERNEL_ARG_ACCESS_READ_ONLY;
+                         else if (v == "write_only")
+                            arg_info.access_qualifier =
+                                                  CL_KERNEL_ARG_ACCESS_WRITE_ONLY;
+                         else if (v == "read_write")
+                            arg_info.access_qualifier =
+                                                  CL_KERNEL_ARG_ACCESS_READ_WRITE;
+                         else /*if (v == "none")*/
+                            arg_info.access_qualifier =
+                                                  CL_KERNEL_ARG_ACCESS_NONE;
+
+                      }
+                      else if (name == "kernel_arg_type") {
+                         arg_info.type_name = v;
+                      }
+                      else if (name == "kernel_arg_type_qual") {
+                         arg_info.type_qualifier = CL_KERNEL_ARG_TYPE_NONE;
+                         if (v.find("const") != std::string::npos)
+                            arg_info.type_qualifier |= CL_KERNEL_ARG_TYPE_CONST;
+                         if (v.find("restrict") != std::string::npos)
+                            arg_info.type_qualifier |= CL_KERNEL_ARG_TYPE_RESTRICT;
+                         if (v.find("volatile") != std::string::npos)
+                            arg_info.type_qualifier |= CL_KERNEL_ARG_TYPE_VOLATILE;
+
+                      }
+                      else if (name == "kernel_arg_name") {
+                         arg_info.name = v;
+                      }
+                }
+            }
+        }
+    }
+}
+
 
 boost::tuple<uint,uint,uint> Kernel::reqdWorkGroupSize(llvm::Module *module) const
 {
