@@ -212,7 +212,17 @@ class Program : public Object
                          void *param_value,
                          size_t *param_value_size_ret) const;
 
-         std::string source() { return p_source; }
+        /**
+         * \brief Get number of kernels in this program:
+         */
+        unsigned int getNumKernels() const;
+
+        /**
+         * \brief Get semicolon separated list of kernel names in this program
+         */
+        std::string getKernelNames() const;
+
+        std::string source() { return p_source; }
 
         std::vector<Kernel *> kernelList;
         std::vector<Kernel *> kernelReleasedList;

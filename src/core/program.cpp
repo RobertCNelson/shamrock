@@ -389,6 +389,47 @@ std::vector<Kernel *> Program::createKernels(cl_int *errcode_ret)
     return kernelList;
 }
 
+unsigned int Program::getNumKernels() const
+{
+
+    if (p_device_dependent.size() == 0) return 0;
+
+    const DeviceDependent &dep = p_device_dependent[0];
+    llvm::NamedMDNode *kernels =
+               dep.linked_module->getNamedMetadata("opencl.kernels");
+
+    if (!kernels) return 0;
+    else return kernels->getNumOperands();
+}
+
+std::string Program::getKernelNames() const
+{
+    std::string retString = "";
+
+    if (p_device_dependent.size() == 0) return retString;
+
+    const DeviceDependent &dep = p_device_dependent[0];
+    llvm::NamedMDNode *kernels =
+               dep.linked_module->getNamedMetadata("opencl.kernels");
+
+    if (!kernels) return retString;
+    else  {
+        for (unsigned int i=0; i<kernels->getNumOperands(); i++) {
+            llvm::MDNode *node = kernels->getOperand(i);
+
+            llvm::Function *kern_signature =
+              llvm::cast<llvm::Function>(
+                  dyn_cast<llvm::ValueAsMetadata>(
+                        node->getOperand(0))->getValue());
+            std::string kern_name = kern_signature->getName().str();
+            if (i > 0) retString += ";";
+            retString += kern_name;
+        }
+    }
+    return retString;
+}
+
+
 cl_int Program::loadSources(cl_uint count, const char **strings,
                             const size_t *lengths)
 {
@@ -690,10 +731,12 @@ cl_int Program::info(cl_program_info param_name,
     size_t value_length = 0;
     llvm::SmallVector<size_t, 4> binary_sizes;
     llvm::SmallVector<DeviceInterface *, 4> devices;
+    std::string names;
 
     union {
         cl_uint cl_uint_var;
         cl_context cl_context_var;
+        size_t size_t_var;
     };
 
     switch (param_name)
@@ -753,7 +796,7 @@ cl_int Program::info(cl_program_info param_name,
             break;
 
         case CL_PROGRAM_BINARIES:
-        {
+            {
             // Special case : param_value points to an array of p_num_devices
             // application-allocated unsigned char* pointers. Check it's good
             // and std::memcpy the data
@@ -778,11 +821,20 @@ cl_int Program::info(cl_program_info param_name,
                 *param_value_size_ret = value_length;
 
             return CL_SUCCESS;
-        }
+            }
 
+        case CL_PROGRAM_NUM_KERNELS:
+            SIMPLE_ASSIGN(size_t, getNumKernels());
+            break;
+
+        case CL_PROGRAM_KERNEL_NAMES:
+            names = getKernelNames();
+            MEM_ASSIGN(names.size()+1, names.c_str());
+            break;
         default:
             return CL_INVALID_VALUE;
     }
+
     if (param_value && param_value_size < value_length)
         return CL_INVALID_VALUE;
 
