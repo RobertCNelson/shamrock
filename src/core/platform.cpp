@@ -166,9 +166,9 @@ namespace Coal
 
             case CL_PLATFORM_VERSION:
 #ifdef SHAMROCK_BUILD
-                STRING_ASSIGN("OpenCL 1.1 Shamrock ");
+                STRING_ASSIGN("OpenCL 1.2 Shamrock ");
 #else
-                STRING_ASSIGN("OpenCL 1.1 TI ");
+                STRING_ASSIGN("OpenCL 1.2 TI ");
 #endif
                 break;
 
