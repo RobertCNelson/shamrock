@@ -65,6 +65,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/DiagnosticPrinter.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 
 #include <runtime/stdlib.c.bc.embed.h>
 
@@ -164,15 +165,15 @@ std::string Program::deviceDependentCompilerOptions(DeviceInterface *device) con
 
 std::vector<llvm::Function *> Program::kernelFunctions(DeviceDependent &dep)
 {
-    std::vector<llvm::Function *> rs; 
+    std::vector<llvm::Function *> rs;
 
-    llvm::NamedMDNode *kernels = 
+    llvm::NamedMDNode *kernels =
                dep.linked_module->getNamedMetadata("opencl.kernels");
 
-    if (!kernels) return rs; 
+    if (!kernels) return rs;
 
     for (unsigned int i=0; i<kernels->getNumOperands(); ++i)
-    {   
+    {
         llvm::MDNode *node = kernels->getOperand(i);
 
         /*---------------------------------------------------------------------
@@ -183,13 +184,13 @@ std::vector<llvm::Function *> Program::kernelFunctions(DeviceDependent &dep)
         /*---------------------------------------------------------------------
         * Bug somewhere, don't crash
         *--------------------------------------------------------------------*/
-        if (!llvm::isa<llvm::Function>(value)) continue;    
+        if (!llvm::isa<llvm::Function>(value)) continue;
 
         llvm::Function *f = llvm::cast<llvm::Function>(value);
         rs.push_back(f);
-    }   
+    }
 
-    return rs; 
+    return rs;
 }
 
 /******************************************************************************
@@ -199,7 +200,7 @@ Kernel *Program::createKernel(const std::string &name, cl_int *errcode_ret)
 {
     Kernel *rs = NULL;
 
-	for (size_t i=0; i < kernelList.size(); i++) 
+	for (size_t i=0; i < kernelList.size(); i++)
     {
         if (kernelList[i]->p_name.compare(name) == 0)
         {
@@ -208,7 +209,7 @@ Kernel *Program::createKernel(const std::string &name, cl_int *errcode_ret)
         }
     }
 	/* Now check the previously released list */
-	for (size_t i=0; i < kernelReleasedList.size(); i++) 
+	for (size_t i=0; i < kernelReleasedList.size(); i++)
     {
         if (kernelReleasedList[i]->p_name.compare(name) == 0)
         {
@@ -216,7 +217,7 @@ Kernel *Program::createKernel(const std::string &name, cl_int *errcode_ret)
 			rs = kernelReleasedList[i];
 			kernelReleasedList.erase(kernelReleasedList.begin() + i);
 			kernelList.push_back(rs);
-			
+
 			return rs;
         }
     }
@@ -242,7 +243,7 @@ Kernel *Program::createKernel(const std::string &name, cl_int *errcode_ret)
             if (func->getName().str().compare(name) == 0)
             {
                 found = true;
-                *errcode_ret = rs->addFunction(dep.device, func, 
+                *errcode_ret = rs->addFunction(dep.device, func,
                                                dep.linked_module);
                 if (*errcode_ret != CL_SUCCESS) return rs;
                 break;
@@ -275,7 +276,7 @@ Kernel * Program::createKernelsAndReturnKernel(const std::string &name, cl_int *
     if (p_device_dependent.size() == 0) return rs;
 
 
-	for (size_t i=0; i < kernelList.size(); i++) 
+	for (size_t i=0; i < kernelList.size(); i++)
     {
         if (kernelList[i]->p_name.compare(name) == 0)
         {
@@ -284,7 +285,7 @@ Kernel * Program::createKernelsAndReturnKernel(const std::string &name, cl_int *
         }
     }
 	/* Now check the previously released list */
-	for (size_t i=0; i < kernelReleasedList.size(); i++) 
+	for (size_t i=0; i < kernelReleasedList.size(); i++)
     {
         if (kernelReleasedList[i]->p_name.compare(name) == 0)
         {
@@ -292,7 +293,7 @@ Kernel * Program::createKernelsAndReturnKernel(const std::string &name, cl_int *
 			rs = kernelReleasedList[i];
 			kernelReleasedList.erase(kernelReleasedList.begin() + i);
 			kernelList.push_back(rs);
-			
+
 			return rs;
         }
 	}
@@ -315,7 +316,7 @@ Kernel * Program::createKernelsAndReturnKernel(const std::string &name, cl_int *
         cl_int result  = CL_SUCCESS;
         Kernel *kernel = createKernel(kernels[i]->getName().str(), &result);
 
-        if (result == CL_SUCCESS) 
+        if (result == CL_SUCCESS)
         {
         }
         else
@@ -491,7 +492,7 @@ cl_int Program::loadBinaries(const unsigned char **data, const size_t *lengths,
         *                  or     LLVM bitcode itself
         *--------------------------------------------------------------------*/
         std::string bitcode;
-        if (! dep.program->ExtractMixedBinary(&dep.unlinked_binary, &bitcode, 
+        if (! dep.program->ExtractMixedBinary(&dep.unlinked_binary, &bitcode,
                                               NULL))
         {
             bitcode = dep.unlinked_binary;
@@ -528,16 +529,19 @@ cl_int Program::loadBinaries(const unsigned char **data, const size_t *lengths,
     return CL_SUCCESS;
 }
 
-cl_int Program::build(const char *options,
-                      void (CL_CALLBACK *pfn_notify)(cl_program program,
-                                                     void *user_data),
-                      void *user_data, cl_uint num_devices,
-                      DeviceInterface * const*device_list)
+cl_int Program::compile(const char *options,
+                     void (CL_CALLBACK *pfn_notify)(cl_program program,
+                                                    void *user_data),
+                     void *user_data, cl_uint num_devices,
+                     DeviceInterface * const*device_list,
+                     cl_uint num_input_headers,
+                     const cl_program *input_headers,
+                     const char **header_include_names)
 {
     // If we've already built this program and are re-building
     // (for example, with different user options) then clear out the
     // device dependent information in preparation for building again.
-    if( p_state == Built) resetDeviceDependent();
+    if( p_state == Built || p_state == Compiled) resetDeviceDependent();
 
     p_state = Failed;
 
@@ -546,6 +550,8 @@ cl_int Program::build(const char *options,
     {
         setDevices(num_devices, device_list);
     }
+
+    // GP TODO: Handle the new input_headers v1.2 features.
 
     // ASW TODO - optimize to compile for each device type only once.
     for (cl_uint i=0; i<p_device_dependent.size(); ++i)
@@ -565,16 +571,14 @@ cl_int Program::build(const char *options,
             // Compile
 	    int compile_result = dep.compiler->compile(options ? options : std::string(),
 						       buffer.get());
-			if (compile_result) 
-            //if (! dep.compiler->compile(options ? options : std::string(), 
-            //                                                buffer) )
+	    if (compile_result)
             {
                 if (pfn_notify)
                     pfn_notify((cl_program)this, user_data);
                 if (compile_result == CL_INVALID_BUILD_OPTIONS)
                     return CL_INVALID_BUILD_OPTIONS;
                 else
-                    return CL_BUILD_PROGRAM_FAILURE;
+                    return CL_COMPILE_PROGRAM_FAILURE;
             }
 
             // Get module and its bitcode
@@ -584,8 +588,34 @@ cl_int Program::build(const char *options,
             llvm::WriteBitcodeToFile(dep.linked_module, ostream);
             ostream.flush();
         }
+    }
 
-        // Link p_linked_module with the stdlib if the device needs that
+    p_state = Compiled;
+    return CL_SUCCESS;
+}
+
+
+cl_int Program::link(const char *options,
+                     void (CL_CALLBACK *pfn_notify)(cl_program program,
+                                                    void *user_data),
+                     void *user_data, cl_uint num_devices,
+                     DeviceInterface * const * device_list,
+                     cl_uint num_input_programs,
+		     const cl_program * input_programs)
+{
+    p_state = Failed;
+
+    // Set device infos
+    if (!p_device_dependent.size())
+    {
+        setDevices(num_devices, device_list);
+    }
+
+    for (cl_uint i=0; i<p_device_dependent.size(); ++i)  {
+        DeviceDependent &dep = deviceDependent(device_list[i]);
+
+        // Link with the stdlib if the device needs that
+        Module *stdlib = NULL;
         if (! dep.is_native_binary && dep.program->linkStdLib())
         {
             // Load the stdlib bitcode
@@ -602,7 +632,6 @@ cl_int Program::build(const char *options,
 
             ErrorOr<Module *> ModuleOrErr =
                     parseBitcodeFile(buffer->getMemBufferRef(), llvm::getGlobalContext());
-            Module *stdlib = NULL;
             if (ModuleOrErr) {
                  stdlib =  ModuleOrErr.get();
             }
@@ -610,21 +639,43 @@ cl_int Program::build(const char *options,
 	         std::error_code EC = ModuleOrErr.getError();
                  errMsg = EC.message();
             }
+	}
 
-            // Link
-	    LLVMBool Result = false;
-	    if (stdlib) {
-	        std::string Message;
-	        raw_string_ostream Stream(Message);
-	        DiagnosticPrinterRawOStream DP(Stream);
+	int start = 0;
+	// If no module, initialize with the first input program:
+	if (!dep.linked_module) {
+	    dep.linked_module = CloneModule(
+	      ((Coal::Program *)input_programs[0])->deviceDependent(device_list[i]).linked_module);
+	    start = 1;
+            if (stdlib) num_input_programs++;
+	}
 
-		LLVMBool Result = llvm::Linker::LinkModules(dep.linked_module, stdlib,
-			[&](const DiagnosticInfo &DI) { DI.print(DP); });
-	        if (Result)
-		    errMsg += strdup(Message.c_str());
+	// Link programs into this program:
+        std::string errMsg;
+
+	for (int j = start; j < num_input_programs; j++) {
+	    Module *other;
+            if (j == (num_input_programs-1) && stdlib) {
+                other = stdlib;
+            }
+            else {
+                DeviceDependent &other_dep =
+                     ((Coal::Program *)input_programs[j])->deviceDependent(device_list[i]);
+                other = other_dep.linked_module;
             }
 
-            if (!stdlib || Result)  {
+            // Link
+	    std::string Message;
+	    raw_string_ostream Stream(Message);
+	    DiagnosticPrinterRawOStream DP(Stream);
+
+	    std::cout << "This: " << dep.linked_module->getName().str() <<
+	      "Other: " << other->getName().str() << std::endl;
+
+	    LLVMBool Result = Linker::LinkModules(dep.linked_module, other,
+		    [&](const DiagnosticInfo &DI) { DI.print(DP); });
+	    if (Result) {
+		errMsg += strdup(Message.c_str());
                 dep.compiler->appendLog("link error: ");
                 dep.compiler->appendLog(errMsg);
                 dep.compiler->appendLog("\n");
@@ -637,7 +688,8 @@ cl_int Program::build(const char *options,
 
                 return CL_BUILD_PROGRAM_FAILURE;
             }
-        }
+	}
+
 
         if (! dep.is_native_binary)
         {
@@ -645,18 +697,18 @@ cl_int Program::build(const char *options,
             std::vector<const char *> api;
             std::vector<std::string> api_s; // Needed to keep valid data in api
             const std::vector<llvm::Function *> &kernels = kernelFunctions(dep);
-         
+
             for (size_t j=0; j<kernels.size(); ++j)
             {
                 std::string s = kernels[j]->getName().str();
                 api_s.push_back(s);
                 api.push_back(s.c_str());
             }
-         
+
             // determine if module has barrier() function calls
             bool hasBarrier = false;
             llvm::CallInst* call;
-            for (llvm::Module::iterator F = dep.linked_module->begin(), 
+            for (llvm::Module::iterator F = dep.linked_module->begin(),
                     EF = dep.linked_module->end(); !hasBarrier && F != EF; ++F)
                 for (llvm::inst_iterator I = inst_begin(*F),
                                          E = inst_end(*F); I != E; ++I)
@@ -670,10 +722,10 @@ cl_int Program::build(const char *options,
                         break;
                     }
                 }
-         
+
             // Optimize code
             llvm::PassManager *manager = new llvm::PassManager();
-         
+
             // Common passes (primary goal : remove unused stdlib functions)
             manager->add(llvm::createTypeBasedAliasAnalysisPass());
             manager->add(llvm::createBasicAliasAnalysisPass());
@@ -682,12 +734,12 @@ cl_int Program::build(const char *options,
             manager->add(llvm::createGlobalOptimizerPass());
             manager->add(llvm::createConstantMergePass());
             manager->add(llvm::createAlwaysInlinerPass());
-         
-            dep.program->createOptimizationPasses(manager, 
+
+            dep.program->createOptimizationPasses(manager,
                                        dep.compiler->optimize(), hasBarrier);
-         
+
             manager->add(llvm::createGlobalDCEPass());
-         
+
             manager->run(*dep.linked_module);
             delete manager;
         }
@@ -703,13 +755,34 @@ cl_int Program::build(const char *options,
         }
     }
 
-    // TODO: Asynchronous compile
+    // TODO: Asynchronous link
     if (pfn_notify)
         pfn_notify((cl_program)this, user_data);
 
     p_state = Built;
-
     return CL_SUCCESS;
+}
+
+cl_int Program::build(const char *options,
+                      void (CL_CALLBACK *pfn_notify)(cl_program program,
+                                                     void *user_data),
+                      void *user_data, cl_uint num_devices,
+                      DeviceInterface * const*device_list)
+{
+    cl_int result;
+
+    result = compile(options, pfn_notify, user_data, num_devices, device_list,
+                     0, NULL, NULL);
+
+    if (result == CL_SUCCESS) {
+        cl_uint num_input_programs = 1;
+        const cl_program input_programs[] = { (cl_program)this };
+
+        result = link(options, pfn_notify, user_data, num_devices,
+                      device_list, num_input_programs, input_programs);
+    }
+
+    return result;
 }
 
 Program::Type Program::type() const
@@ -746,24 +819,24 @@ cl_int Program::info(cl_program_info param_name,
             break;
 
         case CL_PROGRAM_NUM_DEVICES:
-	    // Use devices associated with any built kernels, otherwise use 
+	    // Use devices associated with any built kernels, otherwise use
             // the devices associated with the program context
 	    if (p_device_dependent.size() != 0)
 	       { SIMPLE_ASSIGN(cl_uint, p_device_dependent.size()); }
 	    else
-	       return ((Context *)parent())->info(CL_CONTEXT_NUM_DEVICES, 
+	       return ((Context *)parent())->info(CL_CONTEXT_NUM_DEVICES,
 			   param_value_size, param_value, param_value_size_ret);
 	    break;
 
         case CL_PROGRAM_DEVICES:
-	    // Use devices associated with any built kernels, otherwise use 
+	    // Use devices associated with any built kernels, otherwise use
             // the devices associated with the program context
 	    if (p_device_dependent.size() != 0)
 	    {
 	       for (size_t i=0; i<p_device_dependent.size(); ++i)
 	       {
 		  const DeviceDependent &dep = p_device_dependent[i];
-		 
+
 		  devices.push_back(dep.device);
 	       }
 
@@ -771,7 +844,7 @@ cl_int Program::info(cl_program_info param_name,
 	       value_length = devices.size() * sizeof(DeviceInterface *);
 	   }
 	   else
-	      return ((Context *)parent())->info(CL_CONTEXT_DEVICES,  
+	      return ((Context *)parent())->info(CL_CONTEXT_DEVICES,
 			   param_value_size, param_value, param_value_size_ret);
 	   break;
 
@@ -871,6 +944,7 @@ cl_int Program::buildInfo(DeviceInterface *device,
                     SIMPLE_ASSIGN(cl_build_status, CL_BUILD_NONE);
                     break;
                 case Built:
+                case Compiled:
                     SIMPLE_ASSIGN(cl_build_status, CL_BUILD_SUCCESS);
                     break;
                 case Failed:

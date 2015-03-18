@@ -58,10 +58,10 @@ class Kernel;
 
 /**
  * \brief Program object
- * 
+ *
  * This class compiles and links a source or binaries into LLVM modules for each
  * \c Coal::DeviceInterface for which the program is built.
- * 
+ *
  * It then contains functions to get the list of kernels available in the
  * program, using \c Coal::Kernel objects.
  */
@@ -93,19 +93,20 @@ class Program : public Object
             Empty,   /*!< Just created */
             Loaded,  /*!< Source or binary loaded */
             Built,   /*!< Built */
+            Compiled,/*!< Compiled */
             Failed,  /*!< Build failed */
         };
 
         /**
          * \brief Load sources into the program
-         * 
+         *
          * This function loads the source-code given in \p strings into the
          * program and sets its type to \c Source.
-         * 
+         *
          * \param count number of strings in \p strings
-         * \param strings array of pointers to strings, either null-terminated 
+         * \param strings array of pointers to strings, either null-terminated
          *        or of length given in \p lengths
-         * \param lengths lengths of the strings. If a field is 0, the 
+         * \param lengths lengths of the strings. If a field is 0, the
          *        corresponding string is null-terminated. If \p lengths is
          *        0, all the strings are null-terminated
          * \return \c CL_SUCCESS if success, an error code otherwise
@@ -115,15 +116,15 @@ class Program : public Object
 
         /**
          * \brief Load binaries into the program
-         * 
+         *
          * This function allows client application to load a source, retrieve
          * binaries using \c buildInfo(), and then re-create the same program
          * (after a restart for example) by giving it a precompiled binary.
-         * 
+         *
          * This function loads the binaries for each device and parse them into
          * LLVM modules, then sets the program type to \c Binary or
          * \c NativeBinary.
-         * 
+         *
          * \param data array of pointers to binaries, one for each device
          * \param lengths lengths of the binaries pointed to by \p data
          * \param binary_status array that will be filled by this function with
@@ -137,13 +138,64 @@ class Program : public Object
                             DeviceInterface * const*device_list);
 
         /**
+         * \brief Compile the program
+         * This function compiles a program's source for all the devices or a
+         * specific device(s) in the OpenCL context associated with program.
+         *
+         * \param options options to pass to the compiler, see the OpenCL
+         *        specification.
+         * \param pfn_notify callback function called at the end of the build
+         * \param user_data user data given to \p pfn_notify
+         * \param num_devices number of devices for which binaries are being
+         *        built. If it's a source-based program, this can be 0.
+         * \param device_list list of devices for which the program will be built.
+         * \param num_input_headers number of input headers listed in next two args:
+         * \param input_headers list of cl_program objects containing embedded headers.
+         * \param header_include_names An array of header pathnames, one to one
+         *        correspondence with \p input_headers.
+         * \return \c CL_SUCCESS if success, an error code otherwise
+         */
+        cl_int compile(const char *options,
+                     void (CL_CALLBACK *pfn_notify)(cl_program program,
+                                                    void *user_data),
+                     void *user_data, cl_uint num_devices,
+                     DeviceInterface * const*device_list,
+                     cl_uint num_input_headers,
+                     const cl_program *input_headers,
+                     const char **header_include_names);
+
+        /**
+         * \brief Link a list of compiled binaries or libraries.
+         * Links a set of compiled program objects and libraries for all the devices or
+         * a specific device(s) in the OpenCL context and creates an executable.
+         *
+         * \param options options to pass to the linker, see the OpenCL
+         *        specification.
+         * \param pfn_notify callback function called at the end of the build
+         * \param user_data user data given to \p pfn_notify
+         * \param num_devices number of devices for which binaries are being
+         *        built.
+         * \param device_list list of devices for which the program will be built.
+         * \param num_input_programs number of programs in array referenced by input_programs.
+         * \param input_programs Array of compiled binaries or libraries to be linked.
+         * \return \c CL_SUCCESS if success, an error code otherwise
+         */
+        cl_int link(const char *options,
+                     void (CL_CALLBACK *pfn_notify)(cl_program program,
+                                                    void *user_data),
+                     void *user_data, cl_uint num_devices,
+                     DeviceInterface * const * device_list,
+                     cl_uint num_input_programs,
+		     const cl_program * input_programs);
+
+        /**
          * \brief Build the program
-         * 
+         *
          * This function compiles the sources, if any, and then link the
          * resulting binaries if the devices for which they are compiled asks
          * \c Coal::Program to do so, using \c Coal::DeviceProgram::linkStdLib().
-         * 
-         * \param options options to pass to the compiler, see the OpenCL 
+         *
+         * \param options options to pass to the compiler, see the OpenCL
          *        specification.
          * \param pfn_notify callback function called at the end of the build
          * \param user_data user data given to \p pfn_notify
@@ -168,7 +220,7 @@ class Program : public Object
          * \return a \c Coal::Kernel object corresponding to the given \p name
          */
         Kernel *createKernel(const std::string &name, cl_int *errcode_ret);
-        
+
         /**
          * \brief Create kernels of the program and return given a \p name
          * \param name name of the kernel to be returned
@@ -176,14 +228,14 @@ class Program : public Object
          * \return a \c Coal::Kernel object corresponding to the given \p name
          */
         Kernel *createKernelsAndReturnKernel(const std::string &name, cl_int *errcode_ret);
-        
+
         /**
          * \brief Create all the kernels of the program
          * \param errcode_ret return code (\c CL_SUCCESS if success)
          * \return the list of \c Coal::Kernel objects of this program
          */
         std::vector<Kernel *> createKernels(cl_int *errcode_ret);
-        
+
         /**
          * \brief Device-specific program
          * \param device device for which the device-specific program is needed

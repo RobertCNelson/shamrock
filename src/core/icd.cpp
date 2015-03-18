@@ -127,10 +127,10 @@ void * dispatch_table[] =
     (void *)  0, //clCreateSubDevices;
     (void *)  0, //clRetainDevice;
     (void *)  0, //clReleaseDevice;
-    (void *)  0, // clCreateImage,
+    (void *)  clCreateImage,
     (void *)  0, // clCreateProgramWithBuiltInKernels;
-    (void *)  0, // clCompileProgram;
-    (void *)  0, // clLinkProgram;
+    (void *)  clCompileProgram,
+    (void *)  clLinkProgram,
     (void *)  0, // clUnloadPlatformCompiler;
     (void *)  clGetKernelArgInfo,
     (void *)  0, // clEnqueueFillBuffer;

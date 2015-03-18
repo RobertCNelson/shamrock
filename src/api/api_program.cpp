@@ -191,29 +191,13 @@ clReleaseProgram(cl_program program)
     return CL_SUCCESS;
 }
 
-cl_int
-clBuildProgram(cl_program           program,
-               cl_uint              num_devices,
-               const cl_device_id * device_list,
-               const char *         options,
-               void (*pfn_notify)(cl_program program, void * user_data),
-               void *               user_data)
+static cl_int
+validateContext(Coal::Context      * context,
+                cl_uint              &num_devices,
+                const cl_device_id * &device_list)
 {
-    if (!program->isA(Coal::Object::T_Program))
-        return CL_INVALID_PROGRAM;
-
-    if (!device_list && num_devices > 0)
-        return CL_INVALID_VALUE;
-
-    if (!num_devices && device_list)
-        return CL_INVALID_VALUE;
-
-    if (!pfn_notify && user_data)
-        return CL_INVALID_VALUE;
-
     cl_uint context_num_devices = 0;
     cl_device_id *context_devices;
-    Coal::Context *context = (Coal::Context *)program->parent();
     cl_int result;
 
     result = context->info(CL_CONTEXT_NUM_DEVICES, sizeof(cl_uint),
@@ -256,15 +240,157 @@ clBuildProgram(cl_program           program,
         num_devices = context_num_devices;
         device_list = context_devices;
     }
+    return CL_SUCCESS;
+}
+
+
+
+static cl_int
+validateBuildArgs(cl_program           program,
+                  cl_uint              &num_devices,
+                  const cl_device_id * &device_list,
+                  void (*pfn_notify)(cl_program program, void * user_data),
+                  void *               user_data)
+{
+    if (!program->isA(Coal::Object::T_Program))
+        return CL_INVALID_PROGRAM;
+
+    if (!device_list && num_devices > 0)
+        return CL_INVALID_VALUE;
+
+    if (!num_devices && device_list)
+        return CL_INVALID_VALUE;
+
+    if (!pfn_notify && user_data)
+        return CL_INVALID_VALUE;
+
+    Coal::Context *context = (Coal::Context *)program->parent();
+    cl_int result = validateContext(context, num_devices, device_list);
+    if (result != CL_SUCCESS)
+        return result;
 
     // We cannot try to build a previously-failed program
     if (!(program->state() == Coal::Program::Loaded ||
-          program->state() == Coal::Program::Built  ))
+          program->state() == Coal::Program::Built ||
+          program->state() == Coal::Program::Compiled  ))
         return CL_INVALID_OPERATION;
+
+    return (result);
+}
+
+
+cl_int
+clBuildProgram(cl_program           program,
+               cl_uint              num_devices,
+               const cl_device_id * device_list,
+               const char *         options,
+               void (*pfn_notify)(cl_program program, void * user_data),
+               void *               user_data)
+{
+    cl_int result;
+
+    result = validateBuildArgs(program, num_devices, device_list,
+			       pfn_notify, user_data);
+
+    if (result != CL_SUCCESS) return result;
 
     // Build program
     return program->build(options, pfn_notify, user_data, num_devices,
                           (Coal::DeviceInterface * const*)device_list);
+}
+
+
+cl_int
+clCompileProgram(cl_program           program,
+                 cl_uint              num_devices,
+                 const cl_device_id * device_list,
+                 const char *         options,
+                 cl_uint              num_input_headers,
+                 const cl_program *   input_headers,
+                 const char **        header_include_names,
+                 void (CL_CALLBACK *  pfn_notify)(cl_program program, void * user_data),
+                 void *               user_data)
+{
+    cl_int result = CL_SUCCESS;
+
+    result = validateBuildArgs(program, num_devices, device_list,
+                               pfn_notify,user_data);
+    if (result != CL_SUCCESS) return result;
+
+    if (((num_input_headers == 0) && (header_include_names || input_headers)) ||
+         (num_input_headers && (!header_include_names || !input_headers))) {
+        return (CL_INVALID_VALUE);
+    }
+
+    result = program->compile(options, pfn_notify, user_data, num_devices,
+                              (Coal::DeviceInterface * const*)device_list,
+			      num_input_headers, input_headers, header_include_names);
+
+    return (result);
+}
+
+
+cl_program
+clLinkProgram(cl_context           context,
+              cl_uint              num_devices,
+              const cl_device_id * device_list,
+              const char *         options,
+              cl_uint              num_input_programs,
+              const cl_program *   input_programs,
+              void (CL_CALLBACK *  pfn_notify)(cl_program program, void * user_data),
+              void *               user_data,
+              cl_int *             errcode_ret)
+{
+    cl_int retcode = CL_SUCCESS;
+
+    if (!num_input_programs || ((num_input_programs > 0) && !input_programs))
+        retcode = CL_INVALID_VALUE;
+    else if (!device_list && num_devices > 0)
+        retcode =  CL_INVALID_VALUE;
+    else if (!num_devices && device_list)
+        retcode = CL_INVALID_VALUE;
+    else if (!pfn_notify && user_data)
+        retcode = CL_INVALID_VALUE;
+    else if (!context->isA(Coal::Object::T_Context))
+        retcode = CL_INVALID_CONTEXT;
+
+    if (retcode == CL_SUCCESS) {
+        retcode = validateContext(context, num_devices, device_list);
+    }
+
+    if (retcode == CL_SUCCESS) {
+        // Check that each program is either loaded with a binary, or compiled
+        for (int i = 0; i < num_input_programs; i++) {
+	    if (!input_programs[i]->isA(Coal::Object::T_Program)) {
+                retcode = CL_INVALID_PROGRAM;
+	        break;
+	    }
+            if (!((input_programs[i]->state() == Coal::Program::Loaded &&
+                  input_programs[i]->type() == Coal::Program::Binary) ||
+		  input_programs[i]->state() == Coal::Program::Compiled)) {
+                retcode =  CL_INVALID_OPERATION;
+	        break;
+	    }
+	}
+    }
+
+    // Create a new program object, and link input programs into it:
+    Coal::Program *program = NULL;
+    if (retcode == CL_SUCCESS) {
+        program = new Coal::Program(context);
+        retcode = program->link(options, pfn_notify, user_data, num_devices,
+                                (Coal::DeviceInterface * const*)device_list,
+                                 num_input_programs, input_programs);
+
+        if (retcode != CL_SUCCESS)
+        {
+            delete program;
+            program = NULL;
+        }
+    }
+
+    if (errcode_ret) *errcode_ret = retcode;
+    return (cl_program)program;
 }
 
 cl_int
