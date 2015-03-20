@@ -42,9 +42,12 @@
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/SmallVector.h>
@@ -529,6 +532,80 @@ cl_int Program::loadBinaries(const unsigned char **data, const size_t *lengths,
     return CL_SUCCESS;
 }
 
+// "Embedded Header" processing.
+// Seeing no better alternative, let's place passed in header source into a /tmp directory.
+// Note this will work for relative paths used in the #include directive, which
+// is the typical case.
+const std::string headers_dir = "tmp/.shamrock";
+const std::string tmp_headers_path = "/" + headers_dir + "/";
+
+void mkdirTree(std::string sub, std::string dir)
+{
+    int i;
+    if (sub.length() == 0)
+        return;
+
+    for (i=0; i<sub.length(); i++){
+        dir += sub[i];
+        if (sub[i] == '/')
+            break;
+    }
+    mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if (i+1 < sub.length())
+        mkdirTree(sub.substr(i+1), dir);
+}
+
+static int storeInputHeaders(cl_uint num_input_headers,
+                     const cl_program *input_headers,
+                     const char **header_include_names)
+{
+    int ret = 0;
+
+    if (num_input_headers > 0) {
+        mkdirTree(headers_dir, "/");
+    }
+    for (int i = 0; i < num_input_headers; i++) {
+        std::string pathname = header_include_names[i];
+        int end;
+        // If the include path is a tree of subdirectories, make those first:
+        if ((end = pathname.rfind("/")) != std::string::npos) {
+            std::string header_path = pathname.substr(0, end);
+            mkdirTree(header_path, tmp_headers_path);
+        }
+
+        // Make tmp header file...
+        // and copy header file contents there (previously stored in the program object)
+        Coal::Program *prog = (Coal::Program *)input_headers[i];
+        assert (prog->type() == Coal::Program::Source);
+	std::string fullpath = tmp_headers_path + pathname;
+        try
+        {
+            std::ofstream header_file(fullpath, std::ios::out);
+            header_file << prog->source();
+            header_file.close();
+        }
+        catch(...) {
+            std::cout << "Could not write: " << fullpath << std::endl;
+            ret = 1;
+        }
+    }
+    return (ret);
+}
+
+static void removeInputHeaders(cl_uint num_input_headers,
+                     const char **header_include_names)
+{
+    for (int i = 0; i < num_input_headers; i++) {
+        std::string pathname = tmp_headers_path;
+        pathname += header_include_names[i];
+        remove(pathname.c_str());
+    }
+    if (num_input_headers > 0) {
+        remove(headers_dir.c_str());
+    }
+}
+
+
 cl_int Program::compile(const char *options,
                      void (CL_CALLBACK *pfn_notify)(cl_program program,
                                                     void *user_data),
@@ -538,6 +615,8 @@ cl_int Program::compile(const char *options,
                      const cl_program *input_headers,
                      const char **header_include_names)
 {
+    cl_int retcode = CL_SUCCESS;
+
     // If we've already built this program and are re-building
     // (for example, with different user options) then clear out the
     // device dependent information in preparation for building again.
@@ -551,7 +630,16 @@ cl_int Program::compile(const char *options,
         setDevices(num_devices, device_list);
     }
 
-    // GP TODO: Handle the new input_headers v1.2 features.
+    std::string comp_opts = options ? options : std::string();
+
+    // Place the input headers in a special directory under /tmp so compiler can find them
+    if (storeInputHeaders(num_input_headers, input_headers, header_include_names)) {
+        retcode = CL_BUILD_PROGRAM_FAILURE;
+	goto cleanup;
+    }
+    else if (input_headers) {
+        comp_opts =  std::string("-I /") + headers_dir + std::string(" ") + comp_opts;
+    }
 
     // ASW TODO - optimize to compile for each device type only once.
     for (cl_uint i=0; i<p_device_dependent.size(); ++i)
@@ -569,16 +657,19 @@ cl_int Program::compile(const char *options,
 	      llvm::MemoryBuffer::getMemBuffer(s_data, s_name);
 
             // Compile
-	    int compile_result = dep.compiler->compile(options ? options : std::string(),
-						       buffer.get());
+	    int compile_result = dep.compiler->compile(comp_opts, buffer.get());
 	    if (compile_result)
             {
                 if (pfn_notify)
                     pfn_notify((cl_program)this, user_data);
-                if (compile_result == CL_INVALID_BUILD_OPTIONS)
-                    return CL_INVALID_BUILD_OPTIONS;
-                else
-                    return CL_COMPILE_PROGRAM_FAILURE;
+                if (compile_result == CL_INVALID_BUILD_OPTIONS) {
+                    retcode = CL_INVALID_BUILD_OPTIONS;
+		    goto cleanup;
+		}
+                else {
+                    retcode = CL_COMPILE_PROGRAM_FAILURE;
+		    goto cleanup;
+		}
             }
 
             // Get module and its bitcode
@@ -590,8 +681,11 @@ cl_int Program::compile(const char *options,
         }
     }
 
+cleanup:
+    removeInputHeaders(num_input_headers, header_include_names);
+
     p_state = Compiled;
-    return CL_SUCCESS;
+    return retcode;
 }
 
 
