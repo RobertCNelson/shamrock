@@ -105,6 +105,7 @@ void Program::resetDeviceDependent()
         delete dep.compiler;
         delete dep.program;
         delete dep.linked_module;
+        dep.unlinked_binary.clear();
 
         p_device_dependent.pop_back();
     }
@@ -123,6 +124,7 @@ void Program::setDevices(cl_uint num_devices, DeviceInterface * const*devices)
         dep.is_native_binary = false;
         dep.linked_module    = 0;
         dep.compiler         = new Compiler(dep.device);
+        dep.unlinked_binary.clear();
     }
 }
 
@@ -956,9 +958,21 @@ cl_int Program::info(cl_program_info param_name,
         case CL_PROGRAM_BINARY_SIZES:
             for (size_t i=0; i<p_device_dependent.size(); ++i)
             {
-                const DeviceDependent &dep = p_device_dependent[i];
+                DeviceDependent &dep = const_cast<Coal::Program::DeviceDependent&>
+                                          (p_device_dependent[i]);
 
-                binary_sizes.push_back(dep.unlinked_binary.size());
+                if (!dep.linked_module) {
+                    binary_sizes.push_back(0);
+                }
+                else if (dep.unlinked_binary.empty()) {
+                    llvm::raw_string_ostream ostream(dep.unlinked_binary);
+                    llvm::WriteBitcodeToFile(dep.linked_module, ostream);
+                    ostream.flush();
+                    binary_sizes.push_back(dep.unlinked_binary.size());
+                }
+                else {
+                    binary_sizes.push_back(dep.unlinked_binary.size());
+                }
             }
 
             value = binary_sizes.data();
@@ -977,11 +991,18 @@ cl_int Program::info(cl_program_info param_name,
             if (param_value && param_value_size >= value_length)
                 for (size_t i=0; i<p_device_dependent.size(); ++i)
                 {
-                    const DeviceDependent &dep = p_device_dependent[i];
+                    DeviceDependent &dep = const_cast<Coal::Program::DeviceDependent&>
+                                          (p_device_dependent[i]);
                     unsigned char *dest = binaries[i];
 
                     if (!dest)
                         continue;
+
+                    if (dep.unlinked_binary.empty()) {
+                        llvm::raw_string_ostream ostream(dep.unlinked_binary);
+                        llvm::WriteBitcodeToFile(dep.linked_module, ostream);
+                        ostream.flush();
+                    }
 
                     std::memcpy(dest, dep.unlinked_binary.data(),
                                 dep.unlinked_binary.size());
