@@ -697,7 +697,13 @@ cl_int Program::link(const char *options,
                      cl_uint num_input_programs,
 		     const cl_program * input_programs)
 {
+    bool linkAsLibrary = false;
+
     p_state = Failed;
+
+    if (options && strstr(options, "-create-library")) {
+        linkAsLibrary = true;
+    }
 
     // Set device infos
     if (!p_device_dependent.size())
@@ -710,7 +716,7 @@ cl_int Program::link(const char *options,
 
         // Link with the stdlib if the device needs that
         Module *stdlib = NULL;
-        if (! dep.is_native_binary && dep.program->linkStdLib())
+        if (!dep.is_native_binary && dep.program->linkStdLib() && !linkAsLibrary)
         {
             // Load the stdlib bitcode
             const llvm::StringRef s_data(embed_stdlib_c_bc,
@@ -763,9 +769,6 @@ cl_int Program::link(const char *options,
 	    raw_string_ostream Stream(Message);
 	    DiagnosticPrinterRawOStream DP(Stream);
 
-	    std::cout << "This: " << dep.linked_module->getName().str() <<
-	      "Other: " << other->getName().str() << std::endl;
-
 	    LLVMBool Result = Linker::LinkModules(dep.linked_module, other,
 		    [&](const DiagnosticInfo &DI) { DI.print(DP); });
 	    if (Result) {
@@ -785,7 +788,7 @@ cl_int Program::link(const char *options,
 	}
 
 
-        if (! dep.is_native_binary)
+        if (!dep.is_native_binary && !linkAsLibrary)
         {
             // Get list of kernels to strip other unused functions
             std::vector<const char *> api;
@@ -853,7 +856,7 @@ cl_int Program::link(const char *options,
     if (pfn_notify)
         pfn_notify((cl_program)this, user_data);
 
-    p_state = Built;
+    p_state = (linkAsLibrary? Compiled : Built);
     return CL_SUCCESS;
 }
 
