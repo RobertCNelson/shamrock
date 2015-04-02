@@ -83,7 +83,8 @@ using namespace Coal;
 using namespace llvm;
 
 Program::Program(Context *ctx)
-: Object(Object::T_Program, ctx), p_type(Invalid), p_state(Empty)
+  : Object(Object::T_Program, ctx), p_type(Invalid), p_state(Empty),
+    p_binary_type(CL_PROGRAM_BINARY_TYPE_NONE)
 {
     p_null_device_dependent.compiler = 0;
     p_null_device_dependent.device = 0;
@@ -530,6 +531,10 @@ cl_int Program::loadBinaries(const unsigned char **data, const size_t *lengths,
 
     p_type = Binary;
     p_state = Loaded;
+    // binary_type could also be CL_PROGRAM_BINARY_TYPE_LIBRARY or
+    // CL_PROGRAM_BINARY_TYPE_EXECUTABLE, but need a foolproof way to distinguish
+    // that based on the bits actually passed in.
+    p_binary_type = CL_PROGRAM_BINARY_TYPE_COMPILED_OBJECT;
 
     return CL_SUCCESS;
 }
@@ -687,6 +692,7 @@ cleanup:
     removeInputHeaders(num_input_headers, header_include_names);
 
     p_state = Compiled;
+    p_binary_type = CL_PROGRAM_BINARY_TYPE_COMPILED_OBJECT;
     return retcode;
 }
 
@@ -859,6 +865,8 @@ cl_int Program::link(const char *options,
         pfn_notify((cl_program)this, user_data);
 
     p_state = (linkAsLibrary? Compiled : Built);
+    p_binary_type = (linkAsLibrary? CL_PROGRAM_BINARY_TYPE_LIBRARY :
+                      CL_PROGRAM_BINARY_TYPE_EXECUTABLE);
     return CL_SUCCESS;
 }
 
@@ -1050,6 +1058,7 @@ cl_int Program::buildInfo(DeviceInterface *device,
 
     union {
         cl_build_status cl_build_status_var;
+        cl_program_binary_type  cl_program_binary_type_var;
     };
 
     switch (param_name)
@@ -1082,6 +1091,9 @@ cl_int Program::buildInfo(DeviceInterface *device,
             value_length = dep.compiler->log().size() + 1;
             break;
 
+        case CL_PROGRAM_BINARY_TYPE:
+	    SIMPLE_ASSIGN(cl_program_binary_type, p_binary_type);
+            break;
         default:
             return CL_INVALID_VALUE;
     }

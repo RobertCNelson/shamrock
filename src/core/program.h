@@ -282,6 +282,7 @@ class Program : public Object
     private:
         Type        p_type;
         State       p_state;
+        cl_program_binary_type p_binary_type;
         std::string p_source;
 
         struct DeviceDependent
