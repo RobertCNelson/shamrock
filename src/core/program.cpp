@@ -624,10 +624,22 @@ cl_int Program::compile(const char *options,
 {
     cl_int retcode = CL_SUCCESS;
 
+#if 0
     // If we've already built this program and are re-building
     // (for example, with different user options) then clear out the
     // device dependent information in preparation for building again.
     if( p_state == Built || p_state == Compiled) resetDeviceDependent();
+#else
+    // Per the v1.2 spec for clBuildProgram() and clCompileProgram():
+    // "Returns: CL_INVALID_OPERATION if there are kernel objects attached to program."
+    // Note this causes some Khronos tests to fail, like test_compiler options_build_macro,
+    // options_build_macro_existence, and options_include_directory, as they violate the
+    // spec in this regard.
+    if (getNumKernels() > 0) {
+        p_state = Failed;
+        return(CL_INVALID_OPERATION);
+    }
+#endif
 
     p_state = Failed;
 
@@ -691,8 +703,10 @@ cl_int Program::compile(const char *options,
 cleanup:
     removeInputHeaders(num_input_headers, header_include_names);
 
-    p_state = Compiled;
-    p_binary_type = CL_PROGRAM_BINARY_TYPE_COMPILED_OBJECT;
+    if (retcode == CL_SUCCESS) {
+        p_state = Compiled;
+        p_binary_type = CL_PROGRAM_BINARY_TYPE_COMPILED_OBJECT;
+    }
     return retcode;
 }
 
