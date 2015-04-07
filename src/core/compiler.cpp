@@ -223,6 +223,18 @@ int Compiler::compile(const std::string &options,
             codegen_opts.NoNaNsFPMath = true;
             lang_opts.FastRelaxedMath = true;
         }
+        else if (token == "-cl-denorms-are-zero")
+        {
+            //noop: there seems to be no corresponding clang option.
+        }
+        else if (token == "-cl-strict-aliasing")
+        {
+            codegen_opts.StructPathTBAA = false; // inverse of -fno-strict-aliasing
+        }
+        else if (token == "-cl-no-signed-zeros")
+        {
+            codegen_opts.NoSignedZeros = true;
+        }
         else if (token == "-w")
         {
             diag_opts.IgnoreWarnings = true;
