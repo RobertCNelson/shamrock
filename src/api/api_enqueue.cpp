@@ -746,37 +746,14 @@ cl_int
 clEnqueueMarker(cl_command_queue    command_queue,
                 cl_event *          event)
 {
-    cl_int rs = CL_SUCCESS;
-
-    if (!command_queue->isA(Coal::Object::T_CommandQueue))
-        return CL_INVALID_COMMAND_QUEUE;
+    cl_int rs;
 
     if (!event)
         return CL_INVALID_VALUE;
 
-    // Get the events in command_queue
-    unsigned int count;
-    Coal::Event **events = command_queue->events(count, false);
+    rs = clEnqueueMarkerWithWaitList(command_queue, 0, NULL, event);
 
-    Coal::MarkerEvent *command = new Coal::MarkerEvent(
-        (Coal::CommandQueue *)command_queue,
-        count, count == 0 ? NULL : (const Coal::Event **)events, &rs);
-
-    if (rs != CL_SUCCESS)
-    {
-        delete command;
-        return rs;
-    }
-
-    // Free events, they were memcpyed by Coal::Event
-    for (unsigned int i=0; i<count; ++i)
-    {
-        events[i]->dereference();
-    }
-
-    if (events != NULL)  std::free(events);
-
-    return queueEvent(command_queue, command, event, false);
+    return rs;
 }
 
 cl_int
@@ -820,4 +797,54 @@ clEnqueueBarrier(cl_command_queue command_queue)
     }
 
     return queueEvent(command_queue, command, 0, false);
+}
+
+
+cl_int
+clEnqueueMarkerWithWaitList(cl_command_queue command_queue,
+                            cl_uint          num_events_in_wait_list,
+                            const cl_event * event_wait_list,
+                            cl_event *       event)
+{
+    cl_int rs = CL_SUCCESS;
+    unsigned int count;
+    Coal::Event **events;
+
+    if (!command_queue->isA(Coal::Object::T_CommandQueue))
+        return CL_INVALID_COMMAND_QUEUE;
+
+    // Note: CL_INVALID_EVENT_WAIT_LIST case is checked in Coal::Event constructor.
+
+    // Two cases to handle:
+    //  1) event_wait_list not proveded:  the command waits on command_queue events;
+    //  2) event_wait_list provided:  the command waits on provided wait_list events;
+
+    if (event_wait_list) {
+        count = num_events_in_wait_list;
+        events = (Coal::Event **)event_wait_list;
+    }
+    else {
+        // Get the events in command_queue
+        events = command_queue->events(count, false);
+    }
+
+    Coal::MarkerEvent *command = new Coal::MarkerEvent(
+        (Coal::CommandQueue *)command_queue, count, (const Coal::Event **)events, &rs);
+
+    if (rs != CL_SUCCESS)
+    {
+        delete command;
+        return rs;
+    }
+
+    if (!event_wait_list) {
+	// Free events, they were memcpyed by CommandQueue::events()
+	for (unsigned int i=0; i<count; ++i)
+	{
+	    events[i]->dereference();
+	}
+	if (events != NULL)  std::free(events);
+    }
+
+    return queueEvent(command_queue, command, event, false);
 }
