@@ -45,7 +45,7 @@ clWaitForEvents(cl_uint             num_events,
     if (!num_events || !event_list)
         return CL_INVALID_VALUE;
 
-    // Check the events in the list
+    // Check the events in the list to ensure thay have same context
     cl_context global_ctx = 0;
 
     for (cl_uint i=0; i<num_events; ++i)
@@ -56,7 +56,13 @@ clWaitForEvents(cl_uint             num_events,
         if (event_list[i]->status() < 0)
             return CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST;
 
-        cl_context evt_ctx = (cl_context)event_list[i]->parent()->parent();
+        cl_context evt_ctx;
+        if (event_list[i]->type() == Coal::Event::User) {
+            evt_ctx = (cl_context)((Coal::UserEvent *)event_list[i])->context();
+        }
+        else {
+            evt_ctx = (cl_context)event_list[i]->parent()->parent();
+        }
 
 #if 0 // YUAN: no need to wait for queue to be flushed
         cl_command_queue evt_queue = (cl_command_queue)event_list[i]->parent();
