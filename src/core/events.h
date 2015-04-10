@@ -680,6 +680,8 @@ class BarrierEvent : public Event
 {
     public:
         BarrierEvent(CommandQueue *parent,
+                     cl_uint num_events_in_wait_list,
+                     const Event **event_wait_list,
                      cl_int *errcode_ret);
 
         Type type() const; /*!< \brief Say the event is a \c Coal::Event::Barrier one */

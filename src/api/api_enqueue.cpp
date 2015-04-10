@@ -782,21 +782,11 @@ clEnqueueWaitForEvents(cl_command_queue command_queue,
 cl_int
 clEnqueueBarrier(cl_command_queue command_queue)
 {
-    cl_int rs = CL_SUCCESS;
+    cl_int rs;
 
-    if (!command_queue->isA(Coal::Object::T_CommandQueue))
-        return CL_INVALID_COMMAND_QUEUE;
+    rs = clEnqueueBarrierWithWaitList(command_queue, 0, NULL, NULL);
 
-    Coal::BarrierEvent *command = new Coal::BarrierEvent(
-        (Coal::CommandQueue *)command_queue, &rs);
-
-    if (rs != CL_SUCCESS)
-    {
-        delete command;
-        return rs;
-    }
-
-    return queueEvent(command_queue, command, 0, false);
+    return rs;
 }
 
 
@@ -844,6 +834,33 @@ clEnqueueMarkerWithWaitList(cl_command_queue command_queue,
 	    events[i]->dereference();
 	}
 	if (events != NULL)  std::free(events);
+    }
+
+    return queueEvent(command_queue, command, event, false);
+}
+
+
+cl_int
+clEnqueueBarrierWithWaitList(cl_command_queue command_queue,
+                             cl_uint          num_events_in_wait_list,
+                             const cl_event * event_wait_list,
+                             cl_event *       event)
+{
+    cl_int rs = CL_SUCCESS;
+
+    if (!command_queue->isA(Coal::Object::T_CommandQueue))
+        return CL_INVALID_COMMAND_QUEUE;
+
+    // Note: CL_INVALID_EVENT_WAIT_LIST case is checked in Coal::Event constructor.
+
+    Coal::BarrierEvent *command = new Coal::BarrierEvent(
+        (Coal::CommandQueue *)command_queue, num_events_in_wait_list,
+        (const Coal::Event **)event_wait_list, &rs);
+
+    if (rs != CL_SUCCESS)
+    {
+        delete command;
+        return rs;
     }
 
     return queueEvent(command_queue, command, event, false);
