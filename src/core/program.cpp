@@ -679,8 +679,6 @@ cl_int Program::compile(const char *options,
 	    int compile_result = dep.compiler->compile(comp_opts, buffer.get());
 	    if (compile_result)
             {
-                if (pfn_notify)
-                    pfn_notify((cl_program)this, user_data);
                 if (compile_result == CL_INVALID_BUILD_OPTIONS) {
                     retcode = CL_INVALID_BUILD_OPTIONS;
 		    goto cleanup;
@@ -802,9 +800,6 @@ cl_int Program::link(const char *options,
                 // DEBUG
                 std::cout << dep.compiler->log() << std::endl;
 
-                if (pfn_notify)
-                    pfn_notify((cl_program)this, user_data);
-
                 return CL_BUILD_PROGRAM_FAILURE;
             }
 	}
@@ -867,16 +862,9 @@ cl_int Program::link(const char *options,
         // representation
         if (!dep.program->build(dep.linked_module, &dep.unlinked_binary))
         {
-            if (pfn_notify)
-                pfn_notify((cl_program)this, user_data);
-
             return CL_BUILD_PROGRAM_FAILURE;
         }
     }
-
-    // TODO: Asynchronous link
-    if (pfn_notify)
-        pfn_notify((cl_program)this, user_data);
 
     p_state = (linkAsLibrary? Compiled : Built);
     p_binary_type = (linkAsLibrary? CL_PROGRAM_BINARY_TYPE_LIBRARY :

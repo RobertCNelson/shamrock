@@ -244,7 +244,6 @@ validateContext(Coal::Context      * context,
 }
 
 
-
 static cl_int
 validateBuildArgs(cl_program           program,
                   cl_uint              &num_devices,
@@ -290,13 +289,18 @@ clBuildProgram(cl_program           program,
     cl_int result;
 
     result = validateBuildArgs(program, num_devices, device_list,
-			       pfn_notify, user_data);
+                               pfn_notify, user_data);
 
-    if (result != CL_SUCCESS) return result;
+    if (result == CL_SUCCESS)  {
+        // Build program
+        result =  program->build(options, pfn_notify, user_data, num_devices,
+                              (Coal::DeviceInterface * const*)device_list);
+    }
 
-    // Build program
-    return program->build(options, pfn_notify, user_data, num_devices,
-                          (Coal::DeviceInterface * const*)device_list);
+    if (pfn_notify)
+        pfn_notify(program, user_data);
+
+    return result;
 }
 
 
@@ -315,20 +319,23 @@ clCompileProgram(cl_program           program,
 
     result = validateBuildArgs(program, num_devices, device_list,
                                pfn_notify,user_data);
-    if (result != CL_SUCCESS) return result;
 
-    if (((num_input_headers == 0) && (header_include_names || input_headers)) ||
-         (num_input_headers && (!header_include_names || !input_headers))) {
-        return (CL_INVALID_VALUE);
+    if ((result == CL_SUCCESS) &&
+        (((num_input_headers == 0) && (header_include_names || input_headers)) ||
+         (num_input_headers && (!header_include_names || !input_headers)))) {
+        result = CL_INVALID_VALUE;
+    }
+    else {
+        result = program->compile(options, pfn_notify, user_data, num_devices,
+                                  (Coal::DeviceInterface * const*)device_list,
+                                  num_input_headers, input_headers, header_include_names);
     }
 
-    result = program->compile(options, pfn_notify, user_data, num_devices,
-                              (Coal::DeviceInterface * const*)device_list,
-			      num_input_headers, input_headers, header_include_names);
+    if (pfn_notify)
+        pfn_notify(program, user_data);
 
     return (result);
 }
-
 
 cl_program
 clLinkProgram(cl_context           context,
@@ -361,17 +368,17 @@ clLinkProgram(cl_context           context,
     if (retcode == CL_SUCCESS) {
         // Check that each program is either loaded with a binary, or compiled
         for (int i = 0; i < num_input_programs; i++) {
-	    if (!input_programs[i]->isA(Coal::Object::T_Program)) {
+            if (!input_programs[i]->isA(Coal::Object::T_Program)) {
                 retcode = CL_INVALID_PROGRAM;
-	        break;
-	    }
+                break;
+            }
             if (!((input_programs[i]->state() == Coal::Program::Loaded &&
                   input_programs[i]->type() == Coal::Program::Binary) ||
-		  input_programs[i]->state() == Coal::Program::Compiled)) {
+                  input_programs[i]->state() == Coal::Program::Compiled)) {
                 retcode =  CL_INVALID_OPERATION;
-	        break;
-	    }
-	}
+                break;
+            }
+        }
     }
 
     // Create a new program object, and link input programs into it:
@@ -382,6 +389,12 @@ clLinkProgram(cl_context           context,
                                 (Coal::DeviceInterface * const*)device_list,
                                  num_input_programs, input_programs);
 
+        // Note: Unlike clCompileProgram() and clLinkProgram(), which per the 1.2 spec,
+	// must trigger the callback whether the build succeeds or not, here we must have a
+	// program object to pass to the pfn_notify() callback.
+        if (pfn_notify)
+            pfn_notify((cl_program)program, user_data);
+
         if (retcode != CL_SUCCESS)
         {
             delete program;
@@ -390,6 +403,7 @@ clLinkProgram(cl_context           context,
     }
 
     if (errcode_ret) *errcode_ret = retcode;
+
     return (cl_program)program;
 }
 
