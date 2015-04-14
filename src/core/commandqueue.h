@@ -348,24 +348,6 @@ class Event : public Object
         void setStatus(Status status);
 
         /**
-         * \brief Increase Event reference count
-         * 
-         * This function uses mutex to protect the reference count
-         * \c update in the underlying object.
-         */
-        void reference();
-
-        /**
-         * \brief Decrease Event reference count
-         * 
-         * This function uses mutex to protect the reference count
-         * \c update in the underlying object.
-         * 
-         * \return true if the reference count is decreased to 0
-         */
-        bool dereference();
-        
-        /**
          * \brief Set device-specific data
          * \param data device-specific data
          */
@@ -444,7 +426,7 @@ class Event : public Object
          * no need to add and return false.
          * \param event the event to be notified
          */
-        bool addDependentEvent(Event *event) const;
+        bool addDependentEvent(Event *event);
 
         /**
          * \brief Remove event from p_wait_events, which should be waited on
@@ -480,7 +462,7 @@ class Event : public Object
         // p_wait_events: I should wait after these events complete
         // p_dependent_events: when I complete, I should notify these events
         std::list<const Event *>   p_wait_events;
-        mutable std::vector<Event *> p_dependent_events;
+        std::vector<Event *> p_dependent_events;
 };
 
 }
