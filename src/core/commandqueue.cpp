@@ -410,7 +410,7 @@ void CommandQueue::pushEventsOnDevice(Event *ready_event,
         Event *event = *it;
 
         // If the event is completed, remove it
-        if (event->status() == CL_COMPLETE)
+        if (event->status() == CL_COMPLETE || event->status() < 0)
         {
             event->setReleaseParent(false);
             oldit = it;
@@ -424,7 +424,7 @@ void CommandQueue::pushEventsOnDevice(Event *ready_event,
 #if ONLY_MAIN_THREAD_CAN_RELEASE_EVENT
             p_released_events.push_back(event);
 #else
-            clReleaseEvent((cl_event) event);
+            clReleaseEvent((cl_event)event);
 #endif
             continue;
         }
@@ -674,7 +674,6 @@ int Event::setStatusHelper(Status status)
     int num_dependent_events;
     std::list<CallbackData> callbacks;
 
-    // TODO: If status < 0, terminate all the events depending on us.
     pthread_mutex_lock(&p_state_mutex);
     p_status = status;
     num_dependent_events = p_dependent_events.size();
@@ -685,6 +684,7 @@ int Event::setStatusHelper(Status status)
     std::multimap<Status, CallbackData>::const_iterator it;
     std::pair<std::multimap<Status, CallbackData>::const_iterator,
               std::multimap<Status, CallbackData>::const_iterator> ret;
+    // GP: TODO: This needs to find status < 0 too, I think.
     ret = p_callbacks.equal_range(status > 0 ? status : CL_COMPLETE);
     for (it=ret.first; it!=ret.second; ++it)
         callbacks.push_back((*it).second);
@@ -714,6 +714,7 @@ void Event::setStatus(Status status)
 
         /*---------------------------------------------------------------------
         * Notify dependent events, remove dependence, and push them if possible
+        * pushEventsOnDevice will remove events that are "completed".
         *--------------------------------------------------------------------*/
         for (int i = 0; i < num_dependent_events; i += 1)
         {
@@ -721,6 +722,10 @@ void Event::setStatus(Status status)
             CommandQueue *q = (CommandQueue *) d_event->parent();
             if (d_event->removeWaitEvent(this) && q != NULL)  // order!
             {
+	        // Terminate dependent events whose prececessor set an error code:
+	        if (status < 0) {
+                    d_event->setStatusHelper(status);
+	        }
                 q->pushEventsOnDevice(d_event, (cq == q));
                 if (cq == q)  already_pushed = true;
             }
