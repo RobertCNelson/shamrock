@@ -82,7 +82,7 @@ void handle_event_completion(DSPDevice *device)
     // an event may be released once it is Complete
     if (queue_props & CL_QUEUE_PROFILING_ENABLE)
        event->updateTiming(Event::End);
-    event->setStatus(Event::Complete);
+    event->setStatus(CL_COMPLETE);
 }
 
 
@@ -491,7 +491,7 @@ bool handle_event_dispatch(DSPDevice *device)
     // an event may be released once it is Complete
     if (queue_props & CL_QUEUE_PROFILING_ENABLE)
        event->updateTiming(Event::End);
-    event->setStatus((errcode == CL_SUCCESS) ?  Event::Complete : 
+    event->setStatus((errcode == CL_SUCCESS) ?  CL_COMPLETE :
                                                (Event::Status)errcode);
 
     return false;

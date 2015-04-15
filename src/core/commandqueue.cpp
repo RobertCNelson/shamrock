@@ -290,7 +290,7 @@ void CommandQueue::cleanEvents()
     {
         Event *event = *it;
 
-        if (event->status() == Event::Complete)
+        if (event->status() == CL_COMPLETE)
         {
             // We cannot be deleted from inside us
             event->setReleaseParent(false);
@@ -391,9 +391,9 @@ void CommandQueue::pushEventsOnDevice(Event *ready_event,
     // Explore the events in p_events and push on the device all of them that
     // are :
     //
-    // - Not already pushed (in Event::Queued state)
+    // - Not already pushed (in CL_QUEUED state)
     // - Not after a barrier, except if we begin with a barrier
-    // - If we are in-order, only the first event in Event::Queued state can
+    // - If we are in-order, only the first event in CL_QUEUED state can
     //   be pushed
 
     std::list<Event *>::iterator it = p_events.begin();
@@ -410,7 +410,7 @@ void CommandQueue::pushEventsOnDevice(Event *ready_event,
         Event *event = *it;
 
         // If the event is completed, remove it
-        if (event->status() == Event::Complete)
+        if (event->status() == CL_COMPLETE)
         {
             event->setReleaseParent(false);
             oldit = it;
@@ -454,9 +454,9 @@ void CommandQueue::pushEventsOnDevice(Event *ready_event,
         // that have to block in-order execution.
         first = false;
 
-        // If the event is not "pushable" (in Event::Queued state), skip it
+        // If the event is not "pushable" (in CL_QUEUED state), skip it
         // It is either Submitted or Running.
-        if (event->status() != Event::Queued)
+        if (event->status() != CL_QUEUED)
         {
             // Intended event is scheduled, skip the rest in queue
             if (event == ready_event) break;
@@ -495,7 +495,7 @@ void CommandQueue::pushEventsOnDevice(Event *ready_event,
             if (p_flushed)
                 pthread_cond_broadcast(&p_event_list_cond);
             pthread_mutex_unlock(&p_event_list_mutex);
-            event->setStatus(Event::Complete);
+            event->setStatus(CL_COMPLETE);
             clReleaseEvent((cl_event) event);
             return;
         }
@@ -503,7 +503,7 @@ void CommandQueue::pushEventsOnDevice(Event *ready_event,
         // The event can be pushed, if we need to
         if (do_profile) event->updateTiming(Event::Submit);
 
-        event->setStatus(Event::Submitted);
+        event->setStatus(CL_SUBMITTED);
         p_num_events_on_device += 1;
         p_device->pushEvent(event);
     }
@@ -540,7 +540,7 @@ Event **CommandQueue::events(unsigned int &count,
         if (! include_completed_events)
         {
             Event *e = *it;
-            if (e->status() == Event::Complete)
+            if (e->status() == CL_COMPLETE)
             {
                 ++it;
                 continue;
@@ -685,7 +685,7 @@ int Event::setStatusHelper(Status status)
     std::multimap<Status, CallbackData>::const_iterator it;
     std::pair<std::multimap<Status, CallbackData>::const_iterator,
               std::multimap<Status, CallbackData>::const_iterator> ret;
-    ret = p_callbacks.equal_range(status > 0 ? status : Complete);
+    ret = p_callbacks.equal_range(status > 0 ? status : CL_COMPLETE);
     for (it=ret.first; it!=ret.second; ++it)
         callbacks.push_back((*it).second);
 
@@ -700,7 +700,7 @@ int Event::setStatusHelper(Status status)
 
 void Event::setStatus(Status status)
 {
-    if (type() == Event::User || (parent() && status == Complete))
+    if (type() == Event::User || (parent() && status == CL_COMPLETE))
     {
         CommandQueue *cq = (CommandQueue *) parent();
         if (cq != NULL)  clRetainCommandQueue((cl_command_queue) cq);
@@ -743,7 +743,7 @@ void Event::setStatus(Status status)
 bool Event::addDependentEvent(Event *event)
 {
     pthread_mutex_lock(&p_state_mutex);
-    if (p_status == Event::Complete)
+    if (p_status == CL_COMPLETE)
     {
         pthread_mutex_unlock(&p_state_mutex);
         return false;
@@ -988,7 +988,7 @@ cl_int Event::profilingInfo(cl_profiling_info param_name,
         return CL_PROFILING_INFO_NOT_AVAILABLE;
 
     // avoid status() call, if called from callbacks, we deadlock on mutex
-    if (p_status != Event::Complete)
+    if (p_status != CL_COMPLETE)
         return CL_PROFILING_INFO_NOT_AVAILABLE;
 
     void *value = 0;

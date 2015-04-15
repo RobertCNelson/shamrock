@@ -250,7 +250,7 @@ void *worker(void *data)
                 // an event may be released once it is Complete
                 if (queue_props & CL_QUEUE_PROFILING_ENABLE)
                     event->updateTiming(Event::End);
-                event->setStatus(Event::Complete);
+                event->setStatus(CL_COMPLETE);
             }
         }
         else

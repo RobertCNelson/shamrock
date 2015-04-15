@@ -52,7 +52,7 @@ BufferEvent::BufferEvent(CommandQueue *parent,
                          cl_uint num_events_in_wait_list,
                          const Event **event_wait_list,
                          cl_int *errcode_ret)
-: Event(parent, Queued, num_events_in_wait_list, event_wait_list, errcode_ret),
+: Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_buffer(buffer)
 {
     clRetainMemObject((cl_mem) p_buffer);
@@ -518,7 +518,7 @@ NativeKernelEvent::NativeKernelEvent(CommandQueue *parent,
                                      cl_uint num_events_in_wait_list,
                                      const Event **event_wait_list,
                                      cl_int *errcode_ret)
-: Event (parent, Queued, num_events_in_wait_list, event_wait_list, errcode_ret),
+: Event (parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_user_func((void *)user_func), p_args(0)
 {
     if (*errcode_ret != CL_SUCCESS) return;
@@ -643,7 +643,7 @@ KernelEvent::KernelEvent(CommandQueue *parent,
                          cl_uint num_events_in_wait_list,
                          const Event **event_wait_list,
                          cl_int *errcode_ret)
-: Event(parent, Queued, num_events_in_wait_list, event_wait_list, errcode_ret),
+: Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_work_dim(work_dim), p_kernel(kernel)
 {
     clRetainKernel((cl_kernel) p_kernel);
@@ -925,7 +925,7 @@ Event::Type TaskEvent::type() const
  * User event
  */
 UserEvent::UserEvent(Context *context, cl_int *errcode_ret)
-: Event(0, Submitted, 0, 0, errcode_ret), p_context(context)
+: Event(0, CL_SUBMITTED, 0, 0, errcode_ret), p_context(context)
 {}
 
 Event::Type UserEvent::type() const
@@ -1482,7 +1482,7 @@ BarrierEvent::BarrierEvent(CommandQueue *parent,
                            cl_uint num_events_in_wait_list,
                            const Event **event_wait_list,
 			   cl_int *errcode_ret)
-: Event(parent, Queued, num_events_in_wait_list, event_wait_list, errcode_ret)
+: Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret)
 {}
 
 Event::Type BarrierEvent::type() const
@@ -1498,7 +1498,7 @@ WaitForEventsEvent::WaitForEventsEvent(CommandQueue *parent,
                                        cl_uint num_events_in_wait_list,
                                        const Event **event_wait_list,
                                        cl_int *errcode_ret)
-: Event(parent, Queued, num_events_in_wait_list, event_wait_list, errcode_ret)
+: Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret)
 {}
 
 Event::Type WaitForEventsEvent::type() const

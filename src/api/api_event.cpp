@@ -79,7 +79,7 @@ clWaitForEvents(cl_uint             num_events,
     // Wait for the events
     for (cl_uint i=0; i<num_events; ++i)
     {
-        event_list[i]->waitForStatus(Coal::Event::Complete);
+        event_list[i]->waitForStatus(CL_COMPLETE);
     }
 
     return CL_SUCCESS;

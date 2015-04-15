@@ -264,16 +264,15 @@ class Event : public Object
             WaitForEvents
         };
 
+	typedef int Status;
         /**
-         * \brief Event status
+         * \brief Event status, can also be a negative value representing an abort code.
+         * Positive values include:
+         *   CL_QUEUED      Simply queued in a command queue
+         *   CL_SUBMITTED   Submitted to a device
+         *   CL_RUNNING     Running on the device
+         *   CL_COMPLETE    Completed
          */
-        enum Status
-        {
-            Queued = CL_QUEUED,       /*!< \brief Simply queued in a command queue */
-            Submitted = CL_SUBMITTED, /*!< \brief Submitted to a device */
-            Running = CL_RUNNING,     /*!< \brief Running on the device */
-            Complete = CL_COMPLETE    /*!< \brief Completed */
-        };
 
         /**
          * \brief Function that can be called when an event change status
