@@ -273,12 +273,6 @@ START_TEST (test_events)
         "cannot enqueue an asynchronous write buffer command"
     );
 
-    result = clSetEventCallback(write_event, CL_SUBMITTED, &event_notify, &good);
-    fail_if(
-        result != CL_INVALID_VALUE,
-        "callback_type must be CL_COMPLETE in OpenCL 1.1"
-    );
-
     result = clSetEventCallback(write_event, CL_COMPLETE, &event_notify, &good);
     fail_if(
         result != CL_COMPLETE,

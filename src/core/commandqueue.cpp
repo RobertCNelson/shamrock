@@ -684,7 +684,6 @@ int Event::setStatusHelper(Status status)
     std::multimap<Status, CallbackData>::const_iterator it;
     std::pair<std::multimap<Status, CallbackData>::const_iterator,
               std::multimap<Status, CallbackData>::const_iterator> ret;
-    // GP: TODO: This needs to find status < 0 too, I think.
     ret = p_callbacks.equal_range(status > 0 ? status : CL_COMPLETE);
     for (it=ret.first; it!=ret.second; ++it)
         callbacks.push_back((*it).second);

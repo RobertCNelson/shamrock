@@ -84,6 +84,7 @@ void *worker(void *data)
             event->updateTiming(Event::Start);
 
         // Execute the action
+        event->setStatus(CL_RUNNING);
         switch (t)
         {
             case Event::ReadBuffer:

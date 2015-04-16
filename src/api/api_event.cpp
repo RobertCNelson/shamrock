@@ -110,7 +110,10 @@ clSetEventCallback(cl_event     event,
     if (!event->isA(Coal::Object::T_Event))
         return CL_INVALID_EVENT;
 
-    if (!pfn_event_notify || command_exec_callback_type != CL_COMPLETE)
+    if (!pfn_event_notify ||
+        !((command_exec_callback_type == CL_SUBMITTED) ||
+          (command_exec_callback_type == CL_RUNNING) ||
+          (command_exec_callback_type == CL_COMPLETE)))
         return CL_INVALID_VALUE;
 
     event->setCallback(command_exec_callback_type, pfn_event_notify, user_data);
