@@ -126,7 +126,7 @@ bool BufferEvent::isSubBufferAligned(const MemObject *buffer,
         return false;
 
     size_t mask = 0;
-    if (align != 0) mask = align - 1;
+    if (align != 0) mask = (align >> 3) - 1;  // align in bits, offset in bytes
 
     if (((SubBuffer *)buffer)->offset() & mask)
         return false;
@@ -224,7 +224,7 @@ MapBufferEvent::MapBufferEvent(CommandQueue *parent,
     if (*errcode_ret != CL_SUCCESS) return;
 
     // Check flags
-    if (map_flags & ~(CL_MAP_READ | CL_MAP_WRITE))
+    if (map_flags & ~(CL_MAP_READ | CL_MAP_WRITE | CL_MAP_WRITE_INVALIDATE_REGION))
     {
         *errcode_ret = CL_INVALID_VALUE;
         return;
@@ -234,6 +234,17 @@ MapBufferEvent::MapBufferEvent(CommandQueue *parent,
     if (offset + cb > buffer->size())
     {
         *errcode_ret = CL_INVALID_VALUE;
+        return;
+    }
+
+    // check conflict between map flags and buffer flags
+    cl_mem_flags buf_flags = buffer->flags();
+    if (   ((map_flags & CL_MAP_READ)
+            && (buf_flags & (CL_MEM_HOST_WRITE_ONLY | CL_MEM_HOST_NO_ACCESS)))
+	   || ((map_flags & (CL_MAP_WRITE | CL_MAP_WRITE_INVALIDATE_REGION))
+            && (buf_flags & (CL_MEM_HOST_READ_ONLY | CL_MEM_HOST_NO_ACCESS))) )
+    {
+        *errcode_ret = CL_INVALID_OPERATION;
         return;
     }
 }
