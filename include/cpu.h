@@ -130,6 +130,24 @@ UNARY_VEC_DECL(uint, uint, clz)
 UNARY_VEC_DECL(long, long, clz)
 UNARY_VEC_DECL(ulong, ulong, clz)
 
+_CLC_OVERLOAD _CLC_DECL char   popcount(char   v) ;
+_CLC_OVERLOAD _CLC_DECL uchar  popcount(uchar  v) ;
+_CLC_OVERLOAD _CLC_DECL short  popcount(short  v) ;
+_CLC_OVERLOAD _CLC_DECL ushort popcount(ushort v) ;
+_CLC_OVERLOAD _CLC_DECL int    popcount(int    v) ;
+_CLC_OVERLOAD _CLC_DECL uint   popcount(uint   v) ;
+_CLC_OVERLOAD _CLC_DECL long   popcount(long   v) ;
+_CLC_OVERLOAD _CLC_DECL ulong  popcount(ulong  v);
+
+UNARY_VEC_DECL(char, char, popcount)
+UNARY_VEC_DECL(uchar, uchar, popcount)
+UNARY_VEC_DECL(short, short, popcount)
+UNARY_VEC_DECL(ushort, ushort, popcount)
+UNARY_VEC_DECL(int, int, popcount)
+UNARY_VEC_DECL(uint, uint, popcount)
+UNARY_VEC_DECL(long, long, popcount)
+UNARY_VEC_DECL(ulong, ulong, popcount)
+
 _CLC_OVERLOAD _CLC_DECL uchar  abs(char x)   ;
 _CLC_OVERLOAD _CLC_DECL ushort abs(short x)  ;
 _CLC_OVERLOAD _CLC_DECL uint   abs(int x)    ;
