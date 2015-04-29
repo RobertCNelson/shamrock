@@ -124,18 +124,18 @@ void * dispatch_table[] =
 
     (void *)  0, //clCreateEventFromGLsyncKHR;
 
-    (void *)  0, //clCreateSubDevices;
-    (void *)  0, //clRetainDevice;
-    (void *)  0, //clReleaseDevice;
+    (void *)  clCreateSubDevices,
+    (void *)  clRetainDevice,
+    (void *)  clReleaseDevice,
     (void *)  clCreateImage,
     (void *)  0, // clCreateProgramWithBuiltInKernels;
     (void *)  clCompileProgram,
     (void *)  clLinkProgram,
     (void *)  clUnloadPlatformCompiler,
     (void *)  clGetKernelArgInfo,
-    (void *)  0, // clEnqueueFillBuffer;
+    (void *)  clEnqueueFillBuffer,
     (void *)  0, // clEnqueueFillImage;
-    (void *)  0, // clEnqueueMigrateMemObjects;
+    (void *)  clEnqueueMigrateMemObjects,
     (void *)  clEnqueueMarkerWithWaitList,
     (void *)  clEnqueueBarrierWithWaitList,
     (void *)  clGetExtensionFunctionAddressForPlatform,

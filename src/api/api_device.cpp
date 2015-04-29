@@ -76,3 +76,34 @@ clGetDeviceInfo(cl_device_id    device,
     return iface->info(param_name, param_value_size, param_value,
                        param_value_size_ret);
 }
+
+cl_int
+clCreateSubDevices(cl_device_id                         in_device,
+                   const cl_device_partition_property * properties,
+                   cl_uint                              num_devices,
+                   cl_device_id *                       out_devices,
+                   cl_uint *                            num_devices_ret)
+{
+    if (!in_device->isA(Coal::Object::T_Device))
+        return CL_INVALID_DEVICE;
+
+    return CL_SUCCESS;
+}
+
+cl_int
+clRetainDevice(cl_device_id device)
+{
+    if (!device->isA(Coal::Object::T_Device))
+        return CL_INVALID_DEVICE;
+
+    return CL_SUCCESS;
+}
+
+cl_int
+clReleaseDevice(cl_device_id device)
+{
+    if (!device->isA(Coal::Object::T_Device))
+        return CL_INVALID_DEVICE;
+
+    return CL_SUCCESS;
+}
