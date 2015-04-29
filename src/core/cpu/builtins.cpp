@@ -411,6 +411,14 @@ static void unimplemented_stub()
 {
 }
 
+void debug_ptr(void * arg)
+{
+  char *s =   (char *)arg;
+  float f = *(float *)arg;
+  double d = *(double *)arg;
+  int    i = *(int *)arg;
+}
+
 void *getBuiltin(const std::string &name)
 {
     if (name == "get_global_id")
@@ -465,8 +473,10 @@ void *getBuiltin(const std::string &name)
     else if (name == "__cpu_read_imageuif")
         return (void *)&read_imageuif;
 
-    else if (name == "debug")
-        return (void *)&printf;
+    // Generic hook to set debugger bpt to inspect stack variable passed as (void *)
+    else if (name == "debug_ptr")
+        return(void *)&debug_ptr;
+
     else if (name == "__aeabi_unwind_cpp_pr0")
         return (void *)&dummy_fxn;
     else if (name == "__aeabi_unwind_cpp_pr1")
