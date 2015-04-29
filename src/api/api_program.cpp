@@ -33,6 +33,7 @@
 #include "CL/cl.h"
 #include <core/program.h>
 #include <core/context.h>
+#include <core/platform.h>
 
 #include <cstdlib>
 
@@ -412,6 +413,15 @@ clUnloadCompiler(void)
 {
     return CL_SUCCESS;
 }
+
+cl_int
+clUnloadPlatformCompiler(cl_platform_id platform)
+{
+    if (platform != &the_platform) return CL_INVALID_PLATFORM;
+
+    return CL_SUCCESS;
+}
+
 
 cl_int
 clGetProgramInfo(cl_program         program,
