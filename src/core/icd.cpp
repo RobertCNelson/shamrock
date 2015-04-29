@@ -138,7 +138,7 @@ void * dispatch_table[] =
     (void *)  0, // clEnqueueMigrateMemObjects;
     (void *)  clEnqueueMarkerWithWaitList,
     (void *)  clEnqueueBarrierWithWaitList,
-    (void *)  0, // clGetExtensionFunctionAddressForPlatform;
+    (void *)  clGetExtensionFunctionAddressForPlatform,
     (void *)  0, // clCreateFromGLTexture;
 
     (void *)  0, // clGetDeviceIDsFromD3D11KHR;

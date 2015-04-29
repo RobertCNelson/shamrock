@@ -87,3 +87,14 @@ void * clGetExtensionFunctionAddress(const char *funcname)
     return NULL;
 }
 
+/******************************************************************************
+* New for v1.2: Just devolve to clGetExtensionFunctionAddress()
+******************************************************************************/
+void * clGetExtensionFunctionAddressForPlatform(cl_platform_id platform, const char *funcname)
+{
+
+    if (platform != &the_platform) return NULL;
+
+    return clGetExtensionFunctionAddress(funcname);
+}
+
