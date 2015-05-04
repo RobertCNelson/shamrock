@@ -316,6 +316,37 @@ clEnqueueCopyBuffer(cl_command_queue    command_queue,
 }
 
 cl_int
+clEnqueueFillBuffer(cl_command_queue   command_queue,
+                    cl_mem             buffer,
+                    const void *       pattern,
+                    size_t             pattern_size,
+                    size_t             offset,
+                    size_t             size,
+                    cl_uint            num_events_in_wait_list,
+                    const cl_event *   event_wait_list,
+                    cl_event *         event )
+{
+    cl_int rs = CL_SUCCESS;
+
+    if (!command_queue->isA(Coal::Object::T_CommandQueue))
+        return CL_INVALID_COMMAND_QUEUE;
+
+    Coal::FillBufferEvent *command = new Coal::FillBufferEvent(
+        (Coal::CommandQueue *)command_queue,
+        (Coal::MemObject *)buffer,
+        pattern, pattern_size, offset, size,
+        num_events_in_wait_list, (const Coal::Event **)event_wait_list, &rs);
+
+    if (rs != CL_SUCCESS)
+    {
+        delete command;
+        return rs;
+    }
+
+    return queueEvent(command_queue, command, event, false);
+}
+
+cl_int
 clEnqueueReadImage(cl_command_queue     command_queue,
                    cl_mem               image,
                    cl_bool              blocking_read,
@@ -864,26 +895,6 @@ clEnqueueBarrierWithWaitList(cl_command_queue command_queue,
     }
 
     return queueEvent(command_queue, command, event, false);
-}
-
-
-cl_int
-clEnqueueFillBuffer(cl_command_queue   command_queue,
-                    cl_mem             buffer,
-                    const void *       pattern,
-                    size_t             pattern_size,
-                    size_t             offset,
-                    size_t             size,
-                    cl_uint            num_events_in_wait_list,
-                    const cl_event *   event_wait_list,
-                    cl_event *         event)
-{
-    cl_int rs = CL_SUCCESS;
-
-    if (!command_queue->isA(Coal::Object::T_CommandQueue))
-        return CL_INVALID_COMMAND_QUEUE;
-
-    return rs;
 }
 
 cl_int

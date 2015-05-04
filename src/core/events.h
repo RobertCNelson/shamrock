@@ -290,6 +290,34 @@ class CopyBufferEvent : public BufferEvent
 };
 
 /**
+ * \brief Fill a buffer with a pattern
+ */
+class FillBufferEvent : public BufferEvent
+{
+    public:
+        FillBufferEvent(CommandQueue *parent,
+                        MemObject *buffer,
+                        const void *       pattern,
+                        size_t             pattern_size,
+                        size_t             offset,
+                        size_t             size,
+                        cl_uint num_events_in_wait_list,
+                        const Event **event_wait_list,
+                        cl_int *errcode_ret);
+
+        Type type() const; /*!< \brief Say the event is a \c Coal::Event::FillBuffer one */
+
+        const void * pattern() const;   /*!< \brief Pattern with which to fill buffer */
+        size_t pattern_size() const;    /*!< \brief Size of pattern, in bytes */
+        size_t offset() const;          /*!< \brief Location in buffer to start filling */
+        size_t size() const;            /*!< \brief Size of region in buffer being filled.  */
+
+    private:
+        const void *    p_pattern;
+        size_t          p_pattern_size, p_offset, p_size;
+};
+
+/**
  * \brief Events related to rectangular (or cubic) memory regions
  * 
  * This event is the base for all the *BufferRect events, and the Image ones.

@@ -259,6 +259,7 @@ class Event : public Object
             ReadBufferRect = CL_COMMAND_READ_BUFFER_RECT,
             WriteBufferRect = CL_COMMAND_WRITE_BUFFER_RECT,
             CopyBufferRect = CL_COMMAND_COPY_BUFFER_RECT,
+            FillBuffer = CL_COMMAND_FILL_BUFFER,
             User = CL_COMMAND_USER,
             Barrier,
             WaitForEvents

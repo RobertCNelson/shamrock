@@ -112,6 +112,22 @@ void *worker(void *data)
                             (char*)src->data() + e->src_offset(), e->cb());
                 break;
             }
+            case Event::FillBuffer:
+            {
+                FillBufferEvent *e = (FillBufferEvent *)event;
+                CPUBuffer *buf = (CPUBuffer *)e->buffer()->deviceBuffer(device);
+                unsigned char *dst = (unsigned char *)buf->data();
+                const unsigned char *pattern = (unsigned char *)e->pattern();
+                size_t      pattern_size = e->pattern_size();
+                size_t      offset = e->offset();
+                size_t      size = e->size();
+
+                dst += offset;
+                for (int i = 0; i < size; i+= pattern_size, dst+=pattern_size) {
+                   std::memmove((void *)dst, (void*)pattern, pattern_size);
+                }
+                break;
+            }
             case Event::ReadBufferRect:
             case Event::WriteBufferRect:
             case Event::CopyBufferRect:

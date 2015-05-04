@@ -516,6 +516,69 @@ Event::Type CopyBufferEvent::type() const
     return Event::CopyBuffer;
 }
 
+FillBufferEvent::FillBufferEvent(CommandQueue *parent,
+                                 MemObject *buffer,
+                                 const void *       pattern,
+                                 size_t             pattern_size,
+                                 size_t             offset,
+                                 size_t             size,
+                                 cl_uint num_events_in_wait_list,
+                                 const Event **event_wait_list,
+                                 cl_int *errcode_ret)
+: BufferEvent(parent, buffer, num_events_in_wait_list, event_wait_list, errcode_ret),
+  p_pattern(pattern), p_pattern_size(pattern_size), p_offset(offset), p_size(size)
+{
+    if (*errcode_ret != CL_SUCCESS) return;
+
+    // Ensure pattern can be written within the buffer:
+    if (offset + size > buffer->size())
+    {
+        *errcode_ret = CL_INVALID_VALUE;
+        return;
+    }
+
+    // Ensure pattern is one of {1,2,4,8,16,32,64,128}:
+    if (!pattern || __builtin_popcount((unsigned int)(pattern_size &0xFFF)) != 1)
+    {
+        *errcode_ret = CL_INVALID_VALUE;
+        return;
+    }
+
+    // Ensure both offset and size are a multiple of pattern size:
+    if ((offset % pattern_size) || (size % pattern_size))
+    {
+        *errcode_ret = CL_INVALID_VALUE;
+        return;
+    }
+}
+
+const void * FillBufferEvent::pattern() const
+{
+    return p_pattern;
+}
+
+size_t FillBufferEvent::pattern_size() const
+{
+    return p_pattern_size;
+}
+
+size_t FillBufferEvent::offset() const
+{
+    return p_offset;
+}
+
+size_t FillBufferEvent::size() const
+{
+    return p_size;
+}
+
+
+Event::Type FillBufferEvent::type() const
+{
+    return Event::FillBuffer;
+}
+
+
 /*
  * Native kernel
  */
