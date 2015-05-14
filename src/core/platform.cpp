@@ -104,7 +104,7 @@ namespace Coal
         char filename[] = "/var/lock/opencl";
         p_lock_fd = begin_file_lock_crit_section(filename);
 
-        p_devices.push_back((_cl_device_id*)new Coal::CPUDevice);
+        p_devices.push_back((_cl_device_id*)new Coal::CPUDevice(NULL,0));
 
        // Driver class only exists for the DSPDevice, so need this guard:
 #ifndef SHAMROCK_BUILD

@@ -65,12 +65,24 @@ using namespace Coal;
 #define ONE_GIGABYTE (1024 * ONE_MEGABYTE)
 #define HALF_GIGABYTE (512 * ONE_MEGABYTE)
 
-CPUDevice::CPUDevice()
-: DeviceInterface(), p_cores(0), p_num_events(0), p_workers(0), p_stop(false),
+//TODO: #define MAX_PARTITION_PROPS (2)
+#define MAX_PARTITION_PROPS (1)
+
+CPUDevice::CPUDevice(DeviceInterface *parent_device, unsigned int cores)
+: DeviceInterface(), p_num_events(0), p_workers(0), p_stop(false),
   p_initialized(false)
 {
-    // Get info about the system
-    p_cores = sysconf(_SC_NPROCESSORS_ONLN);
+    // If this is a root device, then the number of cores is that of the system...
+    p_parent_device = parent_device;
+    if (p_parent_device == NULL) {
+        p_cores = sysconf(_SC_NPROCESSORS_ONLN);
+    }
+    else {
+        // Otherwise, it was computed by createSubDevices and passed in:
+        p_cores = cores;
+    }
+
+    // Determine frequency:
     p_cpu_mhz = 0.0f;
 
     std::filebuf fb;
@@ -313,6 +325,64 @@ bool CPUDevice::gotEnoughToWorkOn()
     return p_num_events > 0;
 }
 
+cl_int CPUDevice::createSubDevices(
+                   const cl_device_partition_property * properties,
+                   cl_uint                              num_devices,
+                   cl_device_id *                       out_devices,
+                   cl_uint *                            num_devices_ret)
+{
+    cl_int retval = CL_SUCCESS;
+    unsigned int partition_size, num_new_devices = 0;
+    unsigned int *cores_per_device = NULL;
+
+    // CL_DEVICE_PARTITION_MAX_SUB_DEVICES
+
+    // Determine if properties and property values are valid:
+    if (properties) {
+        // We support CL_DEVICE_PARTITION_EQUALLY and CL_DEVICE_PARTITION_BY_COUNTS
+        if (properties[0] == CL_DEVICE_PARTITION_EQUALLY) {
+	    partition_size = properties[1];
+	    if (properties[2] != 0) {
+	        retval = CL_INVALID_VALUE;
+	    }
+            else if (partition_size > 0 && partition_size <= numCPUs()) {
+	        num_new_devices = numCPUs() / partition_size;  // discards fraction.
+	    }
+	    else {
+	        retval = CL_INVALID_VALUE;
+	    }
+        }
+	else if (properties[0] == CL_DEVICE_PARTITION_BY_COUNTS) {
+	    // TODO
+	    retval = CL_INVALID_VALUE;
+	}
+	else {
+            retval = CL_INVALID_VALUE;
+	}
+    }
+    else {
+        retval = CL_INVALID_VALUE;
+    }
+
+    if (retval == CL_SUCCESS && out_devices) {
+        if (num_devices < num_new_devices) retval = CL_INVALID_VALUE;
+    }
+
+    assert(retval != CL_SUCCESS || partition_size);
+    if (partition_size) {
+        // Create num_new_devices SubDevices:
+        Coal::CPUDevice * new_device;
+        for (int i = 0; i < num_new_devices; i++) {
+	  new_device = new CPUDevice(this, partition_size);
+	  if (out_devices) out_devices[i] = (cl_device_id)new_device;
+        }
+        if (num_devices_ret) *num_devices_ret = num_new_devices;
+    }
+
+    return (retval);
+}
+
+
 unsigned int CPUDevice::numCPUs() const
 {
     return p_cores;
@@ -358,7 +428,7 @@ cl_int CPUDevice::info(cl_device_info param_name,
         cl_platform_id cl_platform_id_var;
         size_t work_dims[MAX_WORK_DIMS];
         cl_device_id cl_device_id_var;
-        cl_device_partition_property cl_device_partition_property_var;
+        cl_device_partition_property cl_device_partition_property_var[MAX_PARTITION_PROPS];
         cl_device_affinity_domain cl_device_affinity_domain_var;
     };
 
@@ -668,21 +738,23 @@ cl_int CPUDevice::info(cl_device_info param_name,
             STRING_ASSIGN("OpenCL C 1.2 LLVM " LLVM_VERSION);
             break;
 
-	    /*  Until device fission added, these return nominal values: */
         case CL_DEVICE_PARENT_DEVICE:
-	    SIMPLE_ASSIGN(cl_device_id, NULL);
+            SIMPLE_ASSIGN(cl_device_id, p_parent_device);
             break;
         case CL_DEVICE_PARTITION_MAX_SUB_DEVICES:
-            SIMPLE_ASSIGN(cl_uint, 0);
+            SIMPLE_ASSIGN(cl_uint, numCPUs());
             break;
         case CL_DEVICE_PARTITION_PROPERTIES:
-            SIMPLE_ASSIGN(cl_device_partition_property, 0);
+            value_length = MAX_PARTITION_PROPS * sizeof(cl_device_partition_property);
+            cl_device_partition_property_var[0] = CL_DEVICE_PARTITION_EQUALLY;
+	    //TODO: cl_device_partition_property_var[1] = CL_DEVICE_PARTITION_BY_COUNTS;
+            value = &cl_device_partition_property_var;
             break;
         case CL_DEVICE_PARTITION_AFFINITY_DOMAIN:
             SIMPLE_ASSIGN(cl_device_affinity_domain, 0);
             break;
         case CL_DEVICE_REFERENCE_COUNT:
-            SIMPLE_ASSIGN(cl_uint, 1);
+            SIMPLE_ASSIGN(cl_uint, references());
             break;
 
         default:

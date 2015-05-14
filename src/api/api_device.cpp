@@ -87,7 +87,8 @@ clCreateSubDevices(cl_device_id                         in_device,
     if (!in_device->isA(Coal::Object::T_Device))
         return CL_INVALID_DEVICE;
 
-    return CL_SUCCESS;
+    Coal::DeviceInterface *iface = (Coal::DeviceInterface *)in_device;
+    return iface->createSubDevices(properties, num_devices, out_devices, num_devices_ret);
 }
 
 cl_int
@@ -96,7 +97,8 @@ clRetainDevice(cl_device_id device)
     if (!device->isA(Coal::Object::T_Device))
         return CL_INVALID_DEVICE;
 
-    return CL_SUCCESS;
+    device->reference();
+
 }
 
 cl_int
@@ -104,6 +106,9 @@ clReleaseDevice(cl_device_id device)
 {
     if (!device->isA(Coal::Object::T_Device))
         return CL_INVALID_DEVICE;
+
+    if (device->dereference())
+        delete device;
 
     return CL_SUCCESS;
 }

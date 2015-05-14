@@ -166,6 +166,24 @@ class DeviceInterface : public Object
          * \brief Ask device if it has enough work in its queue
          */
         virtual bool gotEnoughToWorkOn() { return false; }
+
+        /**
+         * \brief Partition compute units of the device into subdevices.
+         * \param properties Specifies how to partition this device.
+         * \param num_devices Size of out_devices
+         * \param out_devices Array of device_ids of the new subdevices.
+         * \param num_devices_ret NULL, or ptr to num subdevices allowed per partition scheme
+         * \return a CL_SUCCESS, or error code otherwise.
+         */
+        virtual cl_int createSubDevices(
+                   const cl_device_partition_property * properties,
+                   cl_uint                              num_devices,
+                   cl_device_id *                       out_devices,
+                   cl_uint *                            num_devices_ret)
+        {
+            return CL_SUCCESS;
+	}
+
 };
 
 /**

@@ -63,7 +63,7 @@ class Kernel;
 class CPUDevice : public DeviceInterface
 {
     public:
-        CPUDevice();
+         CPUDevice(DeviceInterface *parent_device, unsigned int cores);
         ~CPUDevice();
 
         /**
@@ -91,13 +91,19 @@ class CPUDevice : public DeviceInterface
         Event *getEvent(bool &stop);
         bool gotEnoughToWorkOn();
 
-        unsigned int numCPUs() const;   /*!< \brief Number of logical CPU cores on the system */
+        cl_int createSubDevices(
+                   const cl_device_partition_property * properties,
+                   cl_uint                              num_devices,
+                   cl_device_id *                       out_devices,
+                   cl_uint *                            num_devices_ret);
+
+        unsigned int numCPUs() const;   /*!< \brief Number of cores in this (sub)device */
         float cpuMhz() const;           /*!< \brief Speed of the CPU in Mhz */
 
         std::string builtinsHeader(void) const { return "cpu.h"; }
 
     private:
-        unsigned int p_cores, p_num_events;
+        unsigned int p_cores, p_num_events, p_compute_units;
         float       p_cpu_mhz;
         std::string p_device_name;
         pthread_t *p_workers;
@@ -106,6 +112,8 @@ class CPUDevice : public DeviceInterface
         pthread_cond_t p_events_cond;
         pthread_mutex_t p_events_mutex;
         bool p_stop, p_initialized;
+
+        DeviceInterface *p_parent_device;
 };
 
 }
