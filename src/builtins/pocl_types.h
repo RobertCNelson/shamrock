@@ -2,10 +2,8 @@
 
 //#include "pocl_features.h"
 
-#if 0 // GP: ???
 #if defined cl_khr_fp64 && !defined cl_khr_int64
 #  error "cl_khr_fp64 requires cl_khr_int64"
-#endif
 #endif
 
 

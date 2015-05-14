@@ -27,6 +27,7 @@
 
 // GP: Add the OpenCL types for "C":
 #define cl_khr_fp64
+#define cl_khr_int64
 #include "_kernel_c.h"
 
 #include <limits.h>
