@@ -148,14 +148,15 @@ UNARY_VEC_DECL(uint, uint, popcount)
 UNARY_VEC_DECL(long, long, popcount)
 UNARY_VEC_DECL(ulong, ulong, popcount)
 
-_CLC_OVERLOAD _CLC_DECL uchar  abs(char x)   ;
-_CLC_OVERLOAD _CLC_DECL ushort abs(short x)  ;
-_CLC_OVERLOAD _CLC_DECL uint   abs(int x)    ;
-_CLC_OVERLOAD _CLC_DECL ulong  abs(long x)   ;
-_CLC_OVERLOAD _CLC_DECL uchar  abs(uchar x)  ;
-_CLC_OVERLOAD _CLC_DECL ushort abs(ushort x) ;
-_CLC_OVERLOAD _CLC_DECL uint   abs(uint x)   ;
-_CLC_OVERLOAD _CLC_DECL ulong  abs(ulong x)  ;
+_CLC_OVERLOAD _CLC_INLINE uchar  abs(char x)    { return __builtin_abs(x); }
+_CLC_OVERLOAD _CLC_INLINE ushort abs(short x)   { return __builtin_abs(x); }
+_CLC_OVERLOAD _CLC_INLINE uint   abs(int x)     { return __builtin_abs(x); }
+_CLC_OVERLOAD _CLC_INLINE ulong  abs(long x)    { if (x < 0) x = -x; return x; }
+
+_CLC_OVERLOAD _CLC_INLINE uchar  abs(uchar x)   { return x; }
+_CLC_OVERLOAD _CLC_INLINE ushort abs(ushort x)  { return x; }
+_CLC_OVERLOAD _CLC_INLINE uint   abs(uint x)    { return x; }
+_CLC_OVERLOAD _CLC_INLINE ulong  abs(ulong x)   { return x; }
 
 UNARY_VEC_DECL(char,  uchar,  abs)
 UNARY_VEC_DECL(short, ushort, abs)
