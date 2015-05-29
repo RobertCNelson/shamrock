@@ -174,13 +174,13 @@ class Kernel : public Object
                 /**
                  * \brief Compares this argument with another
                  * 
-                 * They are different if they \c vec_dim, \c file or \c kind are
-                 * not the same.
+                 * They are same if the \c vec_dim, \c file or \c kind are
+                 * the same.
                  *
                  * \param b other argument to compare
                  * \return true if the this arguments doesn't match \p b
                  */
-                bool operator !=(const Arg &b);
+                bool sameSignature(Arg *b);
 
                 /**
                  * \brief Size of a field of this arg

@@ -274,7 +274,7 @@ cl_int Kernel::addFunction(DeviceInterface *device, llvm::Function *function,
         Arg *a= new Arg(vec_dim, file, kind, target_align, target_size);
 
         // If we also have a function registered, check for signature compliance
-        if (!append && (a) != p_args[i])
+        if (!append && !a->sameSignature(p_args[i]))
             return CL_INVALID_KERNEL_DEFINITION;
 
         // Append arg if needed
@@ -827,13 +827,13 @@ void Kernel::Arg::refineKind (Kernel::Arg::Kind kind)
     p_kind = kind;
 }
 
-bool Kernel::Arg::operator!=(const Arg &b)
+bool Kernel::Arg::sameSignature(Arg *b)
 {
-    bool same = (p_vec_dim == b.p_vec_dim) &&
-                (p_file    == b.p_file) &&
-                (p_kind    == b.p_kind);
+    bool same = (p_vec_dim == b->p_vec_dim) &&
+                (p_file    == b->p_file) &&
+                (p_kind    == b->p_kind);
 
-    return !same;
+    return same;
 }
 
 size_t Kernel::Arg::valueSize() const
