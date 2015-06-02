@@ -103,7 +103,7 @@ class CPUDevice : public DeviceInterface
         std::string builtinsHeader(void) const { return "cpu.h"; }
 
     private:
-        unsigned int p_cores, p_num_events, p_compute_units;
+        unsigned int p_cores, p_num_events;
         float       p_cpu_mhz;
         std::string p_device_name;
         pthread_t *p_workers;

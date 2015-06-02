@@ -372,9 +372,11 @@ cl_int CPUDevice::createSubDevices(
     if (partition_size) {
         // Create num_new_devices SubDevices:
         Coal::CPUDevice * new_device;
-        for (int i = 0; i < num_new_devices; i++) {
-	  new_device = new CPUDevice(this, partition_size);
-	  if (out_devices) out_devices[i] = (cl_device_id)new_device;
+        if (out_devices) {
+            for (int i = 0; i < num_new_devices; i++) {
+                new_device = new CPUDevice(this, partition_size);
+                out_devices[i] = (cl_device_id)new_device;
+            }
         }
         if (num_devices_ret) *num_devices_ret = num_new_devices;
     }
