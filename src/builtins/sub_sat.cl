@@ -27,6 +27,89 @@
  *****************************************************************************/
 #include "cpu.h"
 
+_CLC_OVERLOAD _CLC_DECL char   sub_sat(char x, char y)
+{
+    int bits = CHAR_BIT * sizeof(char);
+    char min = (char)1 << (char)(bits-1);
+    char max = min - (char)1;
+    return ((x^y) >= (char)0 ?
+            /* different signs: no overflow/underflow */
+            x-y : x >= (char)0 ?
+                    /* x and y positive: can overflow */
+                    (x > max+y ? max : x-y) :
+                    /* x and y negative: can underflow */
+                    (x < min+y ? min : x-y));
+
+}
+
+_CLC_OVERLOAD _CLC_DECL short   sub_sat(short x, short y)
+{
+    int bits = CHAR_BIT * sizeof(short);
+    short min = (short)1 << (short)(bits-1);
+    short max = min - (short)1;
+    return ((x^y) >= (short)0 ?
+            /* different signs: no overflow/underflow */
+            x-y : x >= (short)0 ?
+                    /* x and y positive: can overflow */
+                    (x > max+y ? max : x-y) :
+                    /* x and y negative: can underflow */
+                    (x < min+y ? min : x-y));
+
+}
+_CLC_OVERLOAD _CLC_DECL int   sub_sat(int x, int y)
+{
+    int bits = CHAR_BIT * sizeof(int);
+    int min = (int)1 << (int)(bits-1);
+    int max = min - (int)1;
+    return ((x^y) >= (int)0 ?
+            /* different signs: no overflow/underflow */
+            x-y : x >= (int)0 ?
+                    /* x and y positive: can overflow */
+                    (x > max+y ? max : x-y) :
+                    /* x and y negative: can underflow */
+                    (x < min+y ? min : x-y));
+
+}
+
+_CLC_OVERLOAD _CLC_DECL long   sub_sat(long x, long y)
+{
+    int bits = CHAR_BIT * sizeof(long);
+    long min = (long)1 << (long)(bits-1);
+    long max = min - (long)1;
+    return ((x^y) >= (long)0 ?
+            /* different signs: no overflow/underflow */
+            x-y : x >= (long)0 ?
+                    /* x and y positive: can overflow */
+                    (x > max+y ? max : x-y) :
+                    /* x and y negative: can underflow */
+                    (x < min+y ? min : x-y));
+
+}
+
+_CLC_OVERLOAD _CLC_DECL uchar  sub_sat(uchar x, uchar y)
+{
+    uchar min = (uchar)0;
+    return (x < min+y ? min : x-y);
+}
+
+_CLC_OVERLOAD _CLC_DECL ushort  sub_sat(ushort x, ushort y)
+{
+    ushort min = (ushort)0;
+    return (x < min+y ? min : x-y);
+}
+
+_CLC_OVERLOAD _CLC_DECL uint  sub_sat(uint x, uint y)
+{
+    uint min = (uint)0;
+    return (x < min+y ? min : x-y);
+}
+
+_CLC_OVERLOAD _CLC_DECL ulong  sub_sat(ulong x, ulong y)
+{
+    ulong min = (ulong)0;
+    return (x < min+y ? min : x-y);
+}
+
 BINARY_VEC_DEF(char, char,  sub_sat, sub_sat)
 BINARY_VEC_DEF(uchar, uchar, sub_sat, sub_sat)
 BINARY_VEC_DEF(short, short, sub_sat, sub_sat)
