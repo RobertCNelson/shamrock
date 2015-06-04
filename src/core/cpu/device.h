@@ -39,6 +39,9 @@
 #include <list>
 #include <string>
 
+//TODO: #define MAX_PARTITION_PROPS (2)
+#define MAX_PARTITION_PROPS (1)
+
 namespace Coal
 {
 
@@ -97,6 +100,8 @@ class CPUDevice : public DeviceInterface
                    cl_device_id *                       out_devices,
                    cl_uint *                            num_devices_ret);
 
+        void setProperties(const cl_device_partition_property *properties);
+
         unsigned int numCPUs() const;   /*!< \brief Number of cores in this (sub)device */
         float cpuMhz() const;           /*!< \brief Speed of the CPU in Mhz */
 
@@ -114,6 +119,7 @@ class CPUDevice : public DeviceInterface
         bool p_stop, p_initialized;
 
         DeviceInterface *p_parent_device;
+        cl_device_partition_property p_partition_properties[MAX_PARTITION_PROPS];
 };
 
 }

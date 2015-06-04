@@ -990,6 +990,12 @@ cl_int DSPDevice::info(cl_device_info param_name,
     return CL_SUCCESS;
 }
 
+void DSPDevice::setProperties(const cl_device_partition_property *properties)
+{
+    // TODO
+}
+
+
 /******************************************************************************
 * Call back functions from the target loader
 ******************************************************************************/

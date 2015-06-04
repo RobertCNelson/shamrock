@@ -65,9 +65,6 @@ using namespace Coal;
 #define ONE_GIGABYTE (1024 * ONE_MEGABYTE)
 #define HALF_GIGABYTE (512 * ONE_MEGABYTE)
 
-//TODO: #define MAX_PARTITION_PROPS (2)
-#define MAX_PARTITION_PROPS (1)
-
 CPUDevice::CPUDevice(DeviceInterface *parent_device, unsigned int cores)
 : DeviceInterface(), p_num_events(0), p_workers(0), p_stop(false),
   p_initialized(false)
@@ -80,6 +77,7 @@ CPUDevice::CPUDevice(DeviceInterface *parent_device, unsigned int cores)
     else {
         // Otherwise, it was computed by createSubDevices and passed in:
         p_cores = cores;
+        p_partition_properties[0] = 0;
     }
 
     // Determine frequency:
@@ -376,6 +374,7 @@ cl_int CPUDevice::createSubDevices(
             for (int i = 0; i < num_new_devices; i++) {
                 new_device = new CPUDevice(this, partition_size);
                 out_devices[i] = (cl_device_id)new_device;
+		new_device->setProperties(properties);
             }
         }
         if (num_devices_ret) *num_devices_ret = num_new_devices;
@@ -744,7 +743,14 @@ cl_int CPUDevice::info(cl_device_info param_name,
             SIMPLE_ASSIGN(cl_device_id, p_parent_device);
             break;
         case CL_DEVICE_PARTITION_MAX_SUB_DEVICES:
-            SIMPLE_ASSIGN(cl_uint, numCPUs());
+	    if (numCPUs() == 1) {
+	        // cannot subdivide further:
+                SIMPLE_ASSIGN(cl_uint, 0);
+            }
+	    else {
+	        // Can have each sub-device have one compute unit:
+                SIMPLE_ASSIGN(cl_uint, numCPUs());
+	    }
             break;
         case CL_DEVICE_PARTITION_PROPERTIES:
             value_length = MAX_PARTITION_PROPS * sizeof(cl_device_partition_property);
@@ -754,6 +760,15 @@ cl_int CPUDevice::info(cl_device_info param_name,
             break;
         case CL_DEVICE_PARTITION_AFFINITY_DOMAIN:
             SIMPLE_ASSIGN(cl_device_affinity_domain, 0);
+            break;
+        case CL_DEVICE_PARTITION_TYPE:
+            if (!p_parent_device) {
+                value_length = 0;  // this is a root device.
+            }
+            else {  // otherwise, return properties argument of clCreateSubDevices():
+	        value = (void *)&p_partition_properties[0];
+                value_length = sizeof(cl_device_partition_property) * MAX_PARTITION_PROPS;
+            }
             break;
         case CL_DEVICE_REFERENCE_COUNT:
             SIMPLE_ASSIGN(cl_uint, references());
@@ -774,6 +789,17 @@ cl_int CPUDevice::info(cl_device_info param_name,
 
     return CL_SUCCESS;
 }
+
+void CPUDevice::setProperties(const cl_device_partition_property *properties)
+{
+    // store for retrieval by clGetDeviceInfo(...,CL_DEVICE_PARTITION_TYPE,..)
+
+    assert(properties != NULL);
+    for (int i = 0; i < MAX_PARTITION_PROPS; i++) {
+        p_partition_properties[i] = properties[i];
+    }
+}
+
 
 #if !defined(DSPC868X)
 #if 0 // /dev/mem is no longer available
