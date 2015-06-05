@@ -339,16 +339,19 @@ cl_int CPUDevice::createSubDevices(
     if (properties) {
         // We support CL_DEVICE_PARTITION_EQUALLY and CL_DEVICE_PARTITION_BY_COUNTS
         if (properties[0] == CL_DEVICE_PARTITION_EQUALLY) {
-	    partition_size = properties[1];
-	    if (properties[2] != 0) {
-	        retval = CL_INVALID_VALUE;
-	    }
+            partition_size = properties[1];
+            if (properties[2] != 0) {
+                retval = CL_INVALID_VALUE;
+            }
+            else if (numCPUs() == 1) {
+                retval = CL_DEVICE_PARTITION_FAILED; // cannot partition further.
+            }
             else if (partition_size > 0 && partition_size <= numCPUs()) {
-	        num_new_devices = numCPUs() / partition_size;  // discards fraction.
-	    }
-	    else {
-	        retval = CL_INVALID_VALUE;
-	    }
+                num_new_devices = numCPUs() / partition_size;  // discards fraction.
+            }
+            else {
+                retval = CL_INVALID_VALUE;
+            }
         }
 	else if (properties[0] == CL_DEVICE_PARTITION_BY_COUNTS) {
 	    // TODO
