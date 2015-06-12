@@ -51,7 +51,7 @@ using namespace Coal;
 MemObject::MemObject(Context *ctx, cl_mem_flags flags, void *host_ptr,
                      cl_int *errcode_ret)
 : Object(Object::T_MemObject, ctx), p_num_devices(0), p_flags(flags),
-  p_host_ptr(host_ptr), p_devicebuffers(0), p_dtor_callback_stack()
+  p_host_ptr(host_ptr), p_devicebuffers(0), p_dtor_callback_stack(), p_shared_ptr(NULL)
 {
     // Check the flags value
     const cl_mem_flags all_flags = CL_MEM_READ_WRITE | CL_MEM_WRITE_ONLY |
@@ -168,8 +168,7 @@ cl_int MemObject::init()
 
     // If we have more than one device, the allocation on the devices is
     // defered to first use, so host_ptr can become invalid. So, copy it in
-    // a RAM location and keep it. Also, set a flag telling CPU devices that
-    // they don't need to reallocate and re-copy host_ptr
+    // a RAM location and keep it.
     // SubBuffer should simply reuse Buffer data
     if (p_num_devices > 1 && (p_flags & CL_MEM_COPY_HOST_PTR)
                           && type() != SubBuffer)
@@ -215,7 +214,7 @@ cl_int MemObject::init()
     std::free((void *)devices);
     devices = 0;
 
-    // If we have only one device, already allocate the buffer
+    // If we have only one device, pre-allocate the buffer
     if (p_num_devices == 1)
     {
         if (!p_devicebuffers[0]->allocate())
@@ -257,6 +256,16 @@ void *MemObject::host_ptr() const
 
         return (void *)tmp;
     }
+}
+
+void *MemObject::shared_ptr() const
+{
+    return p_shared_ptr;
+}
+
+void MemObject::setSharedPtr(void *ptr)
+{
+    p_shared_ptr = ptr;
 }
 
 DeviceBuffer *MemObject::deviceBuffer(DeviceInterface *device) const

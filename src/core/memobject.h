@@ -98,6 +98,8 @@ class MemObject : public Object
 
         cl_mem_flags flags() const;                     /*!< \brief Flags */
         void *host_ptr() const;                         /*!< \brief Host pointer */
+        void *shared_ptr() const;                       /*!< \brief Shared data pointer */
+        void setSharedPtr(void *ptr);                   /*!< \brief Set the shared data pointer */
         DeviceBuffer *deviceBuffer(DeviceInterface *device) const; /*!< \brief \c Coal::DeviceBuffer for the given \p device */
 
         void deviceAllocated(DeviceBuffer *buffer);     /*!< \brief Is the \c Coal::DeviceBuffer for \p buffer allocated ? */
@@ -138,7 +140,7 @@ class MemObject : public Object
         unsigned int   p_num_devices, p_devices_to_allocate;
         void          *p_host_ptr;
         DeviceBuffer **p_devicebuffers;
-
+        void          *p_shared_ptr;  // Copied host data shared between CPUBuffers.
         typedef std::pair<void (CL_CALLBACK *)(cl_mem memobj, void *user_data), void*> dtor_callback_t;
         concurrent_stack<dtor_callback_t> p_dtor_callback_stack;
 

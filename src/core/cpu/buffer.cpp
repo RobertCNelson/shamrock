@@ -90,25 +90,35 @@ bool CPUBuffer::allocate()
 {
     size_t buf_size = p_buffer->size();
     int    retval;
+    void   *shared_ptr = p_buffer->shared_ptr();
 
     if (buf_size == 0)
         // Something went wrong...
         return false;
 
-    if (!p_data)
-    {
-        // We don't use a host ptr, we need to allocate a buffer
-        retval = posix_memalign(&p_data, 128, buf_size);  // align for type double16 size.
-        if (retval)
-            return false;
+    if (!shared_ptr) {
+        if (!p_data)
+        {
+            // We don't use a host ptr, we need to allocate a buffer
+            retval = posix_memalign(&p_data, 128, buf_size);  // align for type double16 size.
+            if (retval)
+                return false;
 
-        p_data_malloced = true;
+            p_data_malloced = true;
+
+            // Now set the shared data pointer, so we need not allocate again for this MemObject:
+            p_buffer->setSharedPtr(p_data);
+        }
+
+        if (p_buffer->type() != MemObject::SubBuffer &&
+            p_buffer->flags() & CL_MEM_COPY_HOST_PTR)
+        {
+            std::memcpy(p_data, p_buffer->host_ptr(), buf_size);
+        }
     }
-
-    if (p_buffer->type() != MemObject::SubBuffer &&
-        p_buffer->flags() & CL_MEM_COPY_HOST_PTR)
-    {
-        std::memcpy(p_data, p_buffer->host_ptr(), buf_size);
+    else {
+        // If the CPUBuffer data has already been allocated by the first device, use it:
+        if (!p_data) p_data = shared_ptr;
     }
 
     // Say to the memobject that we are allocated
