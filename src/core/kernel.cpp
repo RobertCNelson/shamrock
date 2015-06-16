@@ -741,9 +741,7 @@ cl_int Kernel::workGroupInfo(DeviceInterface *device,
 
     const DeviceDependent &dep = deviceDependent(device);
 
-    // BUG? Shouldn't we check if the kernel is associated with
-    // the default device ?
-	if (!device && p_device_dependent.size() > 1)
+    if ((!device && p_device_dependent.size() > 1) || (&dep == &null_dep))
         return CL_INVALID_DEVICE;
 
     switch (param_name)
