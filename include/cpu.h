@@ -112,14 +112,14 @@ BINARY_VEC_DECL(uint, uint, rotate)
 BINARY_VEC_DECL(long, long, rotate)
 BINARY_VEC_DECL(ulong, ulong, rotate)
 
-_CLC_OVERLOAD _CLC_DECL char   clz(char   v) ;
-_CLC_OVERLOAD _CLC_DECL uchar  clz(uchar  v) ;
-_CLC_OVERLOAD _CLC_DECL short  clz(short  v) ;
-_CLC_OVERLOAD _CLC_DECL ushort clz(ushort v) ;
-_CLC_OVERLOAD _CLC_DECL int    clz(int    v) ;
-_CLC_OVERLOAD _CLC_DECL uint   clz(uint   v) ;
-_CLC_OVERLOAD _CLC_DECL long clz(long   v) ;
-_CLC_OVERLOAD _CLC_DECL ulong clz(ulong  v);
+_CLC_OVERLOAD _CLC_INLINE char   clz(char   v) { return (v<0 ? 0 : (__builtin_clzs(v)-8)); }
+_CLC_OVERLOAD _CLC_INLINE uchar  clz(uchar  v) { return (v==0 ? 8 : __builtin_clzs(v)- 8); }
+_CLC_OVERLOAD _CLC_INLINE short  clz(short  v) { return (v==0 ? 16 : __builtin_clzs(v)); }
+_CLC_OVERLOAD _CLC_INLINE ushort clz(ushort v) { return (v==0 ? 16 : __builtin_clzs(v)); }
+_CLC_OVERLOAD _CLC_INLINE int    clz(int    v) { return (v==0 ? 32 : __builtin_clz(v)); }
+_CLC_OVERLOAD _CLC_INLINE uint   clz(uint   v) { return (v==0 ? 32 : __builtin_clz(v)); }
+_CLC_OVERLOAD _CLC_INLINE long clz(long   v) { return (v==0 ? 64 : __builtin_clzl(v)); }
+_CLC_OVERLOAD _CLC_INLINE ulong clz(ulong  v) { return (v==0 ? 64 : __builtin_clzl(v)); }
 
 UNARY_VEC_DECL(char, char, clz)
 UNARY_VEC_DECL(uchar, uchar, clz)
@@ -129,24 +129,6 @@ UNARY_VEC_DECL(int, int, clz)
 UNARY_VEC_DECL(uint, uint, clz)
 UNARY_VEC_DECL(long, long, clz)
 UNARY_VEC_DECL(ulong, ulong, clz)
-
-_CLC_OVERLOAD _CLC_DECL char   popcount(char   v) ;
-_CLC_OVERLOAD _CLC_DECL uchar  popcount(uchar  v) ;
-_CLC_OVERLOAD _CLC_DECL short  popcount(short  v) ;
-_CLC_OVERLOAD _CLC_DECL ushort popcount(ushort v) ;
-_CLC_OVERLOAD _CLC_DECL int    popcount(int    v) ;
-_CLC_OVERLOAD _CLC_DECL uint   popcount(uint   v) ;
-_CLC_OVERLOAD _CLC_DECL long   popcount(long   v) ;
-_CLC_OVERLOAD _CLC_DECL ulong  popcount(ulong  v);
-
-UNARY_VEC_DECL(char, char, popcount)
-UNARY_VEC_DECL(uchar, uchar, popcount)
-UNARY_VEC_DECL(short, short, popcount)
-UNARY_VEC_DECL(ushort, ushort, popcount)
-UNARY_VEC_DECL(int, int, popcount)
-UNARY_VEC_DECL(uint, uint, popcount)
-UNARY_VEC_DECL(long, long, popcount)
-UNARY_VEC_DECL(ulong, ulong, popcount)
 
 _CLC_OVERLOAD _CLC_INLINE uchar  abs(char x)    { return __builtin_abs(x); }
 _CLC_OVERLOAD _CLC_INLINE ushort abs(short x)   { return __builtin_abs(x); }
@@ -268,8 +250,7 @@ TERNARY_VEC_DECL(uint, uint, mad_sat)
 TERNARY_VEC_DECL(long, long, mad_sat)
 TERNARY_VEC_DECL(ulong, ulong, mad_sat)
 
-int _cl_printf(__constant char* restrict _format, ...);
-#define printf _cl_printf
+int printf(__constant char* _format, ...);
 void *memcpy(void *dst, const void * src, uint size);
 
 _CLC_DECL  size_t  get_local_id     (uint dim);
