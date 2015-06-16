@@ -218,12 +218,23 @@ BINARY_VEC_DECL(uint, uint, sub_sat)
 BINARY_VEC_DECL(long, long, sub_sat)
 BINARY_VEC_DECL(ulong, ulong, sub_sat)
 
-_CLC_OVERLOAD _CLC_DECL short   upsample(char x, uchar y)   ;
-_CLC_OVERLOAD _CLC_DECL ushort  upsample(uchar x, uchar y) ;
-_CLC_OVERLOAD _CLC_DECL int     upsample(short x, ushort y) ;
-_CLC_OVERLOAD _CLC_DECL uint    upsample(ushort x, ushort y) ;
-_CLC_OVERLOAD _CLC_DECL long     upsample(int x, uint y) ;
-_CLC_OVERLOAD _CLC_DECL ulong    upsample(uint x, uint y) ;
+_CLC_OVERLOAD _CLC_INLINE short   upsample(char x, uchar y)
+{ return (short)x << 8 | y; }
+
+_CLC_OVERLOAD _CLC_INLINE ushort  upsample(uchar x, uchar y)
+{ return (ushort)x << 8 | y; }
+
+_CLC_OVERLOAD _CLC_INLINE int     upsample(short x, ushort y)
+{ return (int) x << 16 | y; }
+
+_CLC_OVERLOAD _CLC_INLINE uint    upsample(ushort x, ushort y)
+{ return (uint)  x << 16 | y; }
+
+_CLC_OVERLOAD _CLC_INLINE long     upsample(int x, uint y)
+{ return (long) x << 32 | y; }
+
+_CLC_OVERLOAD _CLC_INLINE ulong    upsample(uint x, uint y)
+{ return (ulong) x << 32 | y; }
 
 BINARY_VEC_DECL_ALT(char,  short,  uchar, upsample)
 BINARY_VEC_DECL_ALT(uchar, ushort, uchar, upsample)
