@@ -246,6 +246,9 @@ int Compiler::compile(const std::string &options,
         else if (token == "-cl-std=CL1.1")
         {
         }
+        else if (token == "-cl-std=CL1.2")
+        {
+        }
         else if (token == "-cl-kernel-arg-info")
         {
             // required by clGetKernelArgInfo() v1.2 API
