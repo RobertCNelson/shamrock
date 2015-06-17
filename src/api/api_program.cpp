@@ -119,9 +119,10 @@ clCreateProgramWithBinary(cl_context            context,
                                  context_num_devices * sizeof(cl_device_id),
                                  context_devices, 0);
 
-    if (*errcode_ret != CL_SUCCESS)
+    if (*errcode_ret != CL_SUCCESS) {
+        std::free(context_devices);
         return 0;
-
+    }
     for (cl_uint i=0; i<num_devices; ++i)
     {
         bool found = false;
@@ -132,6 +133,7 @@ clCreateProgramWithBinary(cl_context            context,
                 binary_status[i] = CL_INVALID_VALUE;
 
             *errcode_ret = CL_INVALID_VALUE;
+            std::free(context_devices);
             return 0;
         }
 
@@ -147,6 +149,7 @@ clCreateProgramWithBinary(cl_context            context,
         if (!found)
         {
             *errcode_ret = CL_INVALID_DEVICE;
+            std::free(context_devices);
             return 0;
         }
     }
@@ -163,9 +166,11 @@ clCreateProgramWithBinary(cl_context            context,
     if (*errcode_ret != CL_SUCCESS)
     {
         delete program;
+        std::free(context_devices);
         return 0;
     }
 
+    std::free(context_devices);
     return (cl_program)program;
 }
 
