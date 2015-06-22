@@ -46,6 +46,7 @@ SCALAR(ushort, ushort)
 SCALAR(short, ushort)
 SCALAR(ulong, ulong)
 SCALAR(long, ulong)
+SCALAR(uint, uint)
 SCALAR(int, uint)
 
 BINARY_VEC_DEF(char, char,  rotate, rotate)
