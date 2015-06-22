@@ -92,6 +92,36 @@ _CLC_OVERLOAD _CLC_DEF ulong mul_hi(ulong x, ulong y)
     return (f + (hadd(o, (i + (l>>32))) >> 31));
 }
 
+_CLC_OVERLOAD _CLC_DEF char mul_hi(char x, char y)
+{
+    return( (char)(((short)x * (short)y) >> 8));
+}
+
+_CLC_OVERLOAD _CLC_DEF uchar mul_hi(uchar x, uchar y)
+{
+    return( (char)(((ushort)x * (ushort)y) >> 8));
+}
+
+_CLC_OVERLOAD _CLC_DEF short mul_hi(short x, short y)
+{
+    return( (short)(((int)x * (int)y) >> 16));
+}
+
+_CLC_OVERLOAD _CLC_DEF ushort mul_hi(ushort x, ushort y)
+{
+    return( (ushort)(((uint)x * (uint)y) >> 16));
+}
+
+_CLC_OVERLOAD _CLC_DEF int mul_hi(int x, int y)
+{
+    return( (int)(((long)x * (long)y) >> 32));
+}
+
+_CLC_OVERLOAD _CLC_DEF uint mul_hi(uint x, uint y)
+{
+    return( (uint)(((ulong)x * (ulong)y) >> 32));
+}
+
 BINARY_VEC_DEF(char, char,  mul_hi, mul_hi)
 BINARY_VEC_DEF(uchar, uchar, mul_hi, mul_hi)
 BINARY_VEC_DEF(short, short, mul_hi, mul_hi)
