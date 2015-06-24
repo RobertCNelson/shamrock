@@ -80,13 +80,26 @@ Kernel::~Kernel()
     }
 }
 
+static bool matchDeviceOrParent(DeviceInterface *device_dep, DeviceInterface *device)
+{
+    bool match = (device_dep == device);
+    DeviceInterface *next_device = device->parentDevice();
+
+    // If no match, device could be a sub-device - so go up the hierarchy checking parents:
+    while (!match && next_device) {
+        match = (device_dep == next_device);
+        next_device = next_device->parentDevice();
+    }
+    return match;
+}
+
 const Kernel::DeviceDependent &Kernel::deviceDependent(DeviceInterface *device) const
 {
     for (size_t i=0; i<p_device_dependent.size(); ++i)
     {
         const DeviceDependent &rs = p_device_dependent[i];
 
-        if (rs.device == device || (!device && p_device_dependent.size() == 1))
+        if (matchDeviceOrParent(rs.device, device) || (!device && p_device_dependent.size() == 1))
             return rs;
     }
 
@@ -99,7 +112,7 @@ Kernel::DeviceDependent &Kernel::deviceDependent(DeviceInterface *device)
     {
         DeviceDependent &rs = p_device_dependent[i];
 
-        if (rs.device == device || (!device && p_device_dependent.size() == 1))
+        if (matchDeviceOrParent(rs.device, device) || (!device && p_device_dependent.size() == 1))
             return rs;
     }
 

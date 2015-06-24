@@ -184,6 +184,7 @@ class DeviceInterface : public Object
             return CL_SUCCESS;
 	}
 
+        virtual DeviceInterface * parentDevice() const = 0;
 };
 
 /**

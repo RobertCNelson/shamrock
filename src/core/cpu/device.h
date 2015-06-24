@@ -105,6 +105,8 @@ class CPUDevice : public DeviceInterface
         unsigned int numCPUs() const;   /*!< \brief Number of cores in this (sub)device */
         float cpuMhz() const;           /*!< \brief Speed of the CPU in Mhz */
 
+        DeviceInterface * parentDevice() const { return p_parent_device; }
+
         std::string builtinsHeader(void) const { return "cpu.h"; }
 
     private:
