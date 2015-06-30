@@ -260,8 +260,9 @@ class Event : public Object
             WriteBufferRect = CL_COMMAND_WRITE_BUFFER_RECT,
             CopyBufferRect = CL_COMMAND_COPY_BUFFER_RECT,
             FillBuffer = CL_COMMAND_FILL_BUFFER,
+            MigrateMemObjects = CL_COMMAND_MIGRATE_MEM_OBJECTS,
             User = CL_COMMAND_USER,
-            Barrier,
+            Barrier = CL_COMMAND_BARRIER,
             WaitForEvents
         };
 

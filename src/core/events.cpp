@@ -1594,3 +1594,57 @@ Event::Type MarkerEvent::type() const
 {
     return Event::Marker;
 }
+
+
+
+MigrateMemObjectsEvent::MigrateMemObjectsEvent(CommandQueue *parent,
+                                 cl_uint                num_mem_objects,
+                                 const Coal::MemObject **mem_objects,
+                                 cl_mem_migration_flags flags,
+                                 cl_uint num_events_in_wait_list,
+                                 const Event **event_wait_list,
+                                 cl_int *errcode_ret)
+: Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
+  p_num_mem_objects(num_mem_objects), p_mem_objects(mem_objects), p_flags(flags)
+{
+    if (*errcode_ret != CL_SUCCESS) return;
+
+    if (!num_mem_objects || !mem_objects) {
+        *errcode_ret = CL_INVALID_VALUE;
+        return;
+    }
+
+    if (flags & ~(CL_MIGRATE_MEM_OBJECT_HOST | CL_MIGRATE_MEM_OBJECT_CONTENT_UNDEFINED)) {
+        *errcode_ret = CL_INVALID_VALUE;
+	return;
+    }
+
+    Context *ctx = (Context *)parent->parent();
+    for (int i = 0; i < num_mem_objects; i++)
+    {
+        if (!mem_objects[i]->isA(Coal::Object::T_MemObject))
+	    { *errcode_ret = CL_INVALID_MEM_OBJECT; break; }
+        else if (ctx != (Context *)mem_objects[i]->parent())
+	    { *errcode_ret = CL_INVALID_CONTEXT; break; }
+    }
+}
+
+cl_uint MigrateMemObjectsEvent::num_mem_objects() const
+{
+    return p_num_mem_objects;
+}
+
+const Coal::MemObject ** MigrateMemObjectsEvent::mem_objects() const
+{
+    return p_mem_objects;
+}
+
+cl_mem_migration_flags MigrateMemObjectsEvent::flags() const
+{
+    return p_flags;
+}
+
+Event::Type MigrateMemObjectsEvent::type() const
+{
+    return Event::MigrateMemObjects;
+}

@@ -743,6 +743,28 @@ class MarkerEvent : public WaitForEventsEvent
         Type type() const; /*!< \brief Say the event is a \c Coal::Event::Marker one */
 };
 
-}
+class MigrateMemObjectsEvent: public Event
+{
+    public:
+        MigrateMemObjectsEvent(CommandQueue *parent,
+                               cl_uint                num_mem_objects,
+                               const Coal::MemObject **mem_objects,
+                               cl_mem_migration_flags flags,
+                               cl_uint num_events_in_wait_list,
+                               const Event **event_wait_list,
+                               cl_int *errcode_ret);
 
+        Type type() const; /*!< \brief Say the event is a \c Coal::Event::MigrateMemObjects one */
+
+        cl_uint num_mem_objects() const;            /*!< \brief Number of MemObjects to migrate */
+        const Coal::MemObject **mem_objects() const;/*!< \brief List of MemObjects to migrate */
+        cl_mem_migration_flags flags() const;       /*!< \brief  Migrate flags */
+
+    private:
+        cl_uint  p_num_mem_objects;
+        const Coal::MemObject **p_mem_objects;
+        cl_mem_migration_flags p_flags;
+};
+
+}
 #endif

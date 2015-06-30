@@ -911,5 +911,16 @@ clEnqueueMigrateMemObjects(cl_command_queue       command_queue,
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
-    return rs;
+    Coal::MigrateMemObjectsEvent *command = new Coal::MigrateMemObjectsEvent(
+        (Coal::CommandQueue *)command_queue,
+        num_mem_objects, (const Coal::MemObject **)mem_objects, flags,
+        num_events_in_wait_list, (const Coal::Event **)event_wait_list, &rs);
+
+    if (rs != CL_SUCCESS)
+    {
+        delete command;
+        return rs;
+    }
+
+    return queueEvent(command_queue, command, event, false);
 }
