@@ -26,7 +26,7 @@
  *   THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 #include "cpu.h"
-
+/* 32 bits atomic add */
 _CLC_OVERLOAD _CLC_DEF int  atomic_add(volatile global int*  p, int  val)
 {
      return __sync_fetch_and_add(p, val, __ATOMIC_RELAXED);
@@ -47,6 +47,28 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_add(volatile local  uint* p, uint val)
     return __sync_fetch_and_add(p, val, __ATOMIC_RELAXED);
 }
 
+/* 64 bits atomic add */
+_CLC_OVERLOAD _CLC_DEF long  atomic_add(volatile global long*  p, long  val)
+{
+     return __sync_fetch_and_add(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_add(volatile global ulong* p, ulong val)
+{
+    return __sync_fetch_and_add(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_add(volatile local  long*  p, long  val)
+{
+    return __sync_fetch_and_add(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_add(volatile local  ulong* p, ulong val)
+{
+    return __sync_fetch_and_add(p, val, __ATOMIC_RELAXED);
+}
+
+/* 32 bits atomic sub */
 _CLC_OVERLOAD _CLC_DEF int  atomic_sub(volatile global int*  p, int  val)
 {
     return __sync_fetch_and_sub(p, val, __ATOMIC_RELAXED);
@@ -67,7 +89,28 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_sub(volatile local  uint* p, uint val)
     return __sync_fetch_and_sub(p, val, __ATOMIC_RELAXED);
 }
 
+/* 64 bits atomic sub */
+_CLC_OVERLOAD _CLC_DEF long  atomic_sub(volatile global long*  p, long  val)
+{
+    return __sync_fetch_and_sub(p, val, __ATOMIC_RELAXED);
+}
 
+_CLC_OVERLOAD _CLC_DEF ulong atomic_sub(volatile global ulong* p, ulong val)
+{
+    return __sync_fetch_and_sub(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_sub(volatile local  long*  p, long  val)
+{
+    return __sync_fetch_and_sub(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_sub(volatile local  ulong* p, ulong val)
+{
+    return __sync_fetch_and_sub(p, val, __ATOMIC_RELAXED);
+}
+
+/* 32 bits atomic xchg */
 _CLC_OVERLOAD _CLC_DEF int  atomic_xchg(volatile global int*  p, int  val)
 {
     return __atomic_exchange_n(p, val, __ATOMIC_RELAXED);
@@ -99,6 +142,28 @@ _CLC_OVERLOAD _CLC_DEF float atomic_xchg(volatile local  float* p, float val)
 }
 #endif
 
+/* 64 bits atomic xchg */
+_CLC_OVERLOAD _CLC_DEF long  atomic_xchg(volatile global long*  p, long  val)
+{
+    return __atomic_exchange_n(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_xchg(volatile global ulong* p, ulong val)
+{
+    return __atomic_exchange_n(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_xchg(volatile local  long*  p, long  val)
+{
+    return __atomic_exchange_n(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_xchg(volatile local  ulong* p, ulong val)
+{
+    return __atomic_exchange_n(p, val, __ATOMIC_RELAXED);
+}
+
+/* 32 bits atomic inc */
 _CLC_OVERLOAD _CLC_DEF int  atomic_inc(volatile global int*  p)
 {
     return atomic_add(p, 1);
@@ -119,7 +184,28 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_inc(volatile local  uint* p)
     return atomic_add(p, 1);
 }
 
+/* 64 bits atomic inc */
+_CLC_OVERLOAD _CLC_DEF long  atomic_inc(volatile global long*  p)
+{
+    return atomic_add(p, 1);
+}
 
+_CLC_OVERLOAD _CLC_DEF ulong atomic_inc(volatile global ulong* p)
+{
+    return atomic_add(p, 1);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_inc(volatile local  long*  p)
+{
+    return atomic_add(p, 1);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_inc(volatile local  ulong* p)
+{
+    return atomic_add(p, 1);
+}
+
+/* 32 bits atomic dec */
 _CLC_OVERLOAD _CLC_DEF int  atomic_dec(volatile global int*  p)
 {
     return atomic_sub(p, 1);
@@ -140,6 +226,28 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_dec(volatile local  uint* p)
     return atomic_sub(p, 1);
 }
 
+/* 64 bits atomic dec */
+_CLC_OVERLOAD _CLC_DEF long  atomic_dec(volatile global long*  p)
+{
+    return atomic_sub(p, 1);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_dec(volatile global ulong* p)
+{
+    return atomic_sub(p, 1);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_dec(volatile local  long*  p)
+{
+    return atomic_sub(p, 1);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_dec(volatile local  ulong* p)
+{
+    return atomic_sub(p, 1);
+}
+
+/* 32 bits atomic cmpxchg */
 _CLC_OVERLOAD _CLC_DEF int  atomic_cmpxchg(volatile global int*  p, int  cmp, int  val)
 {
     __atomic_compare_exchange_n((volatile global int*)p, &cmp, val, false,
@@ -168,6 +276,36 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_cmpxchg(volatile local  uint* p, uint cmp, ui
     return cmp;
 }
 
+/* 64 bits atomic cmpxchg */
+_CLC_OVERLOAD _CLC_DEF long  atomic_cmpxchg(volatile global long*  p, long  cmp, long  val)
+{
+    __atomic_compare_exchange_n((volatile global long*)p, &cmp, val, false,
+                                            __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+    return cmp;
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_cmpxchg(volatile global ulong* p, ulong cmp, ulong val)
+{
+    __atomic_compare_exchange_n((volatile global ulong*)p, &cmp, val, false,
+                                            __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+    return cmp;
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_cmpxchg(volatile local long*  p, long  cmp, long  val)
+{
+    __atomic_compare_exchange_n((volatile local long*)p, &cmp, val, false,
+                                            __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+    return cmp;
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_cmpxchg(volatile local  ulong* p, ulong cmp, ulong val)
+{
+    __atomic_compare_exchange_n((volatile local ulong*)p, &cmp, val, false,
+                                            __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+    return cmp;
+}
+
+/* 32 bits atomic min */
 _CLC_OVERLOAD _CLC_DEF int  atomic_min(volatile global int*  p, int  val)
 {
     return min(*p, val);
@@ -188,6 +326,28 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_min(volatile local  uint* p, uint val)
     return min(*p, val);
 }
 
+/* 64 bits atomic min */
+_CLC_OVERLOAD _CLC_DEF long  atomic_min(volatile global long*  p, long  val)
+{
+    return min(*p, val);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_min(volatile global ulong* p, ulong val)
+{
+    return min(*p, val);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_min(volatile local  long*  p, long  val)
+{
+    return min(*p, val);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_min(volatile local  ulong* p, ulong val)
+{
+    return min(*p, val);
+}
+
+/* 32 bits atomic max */
 _CLC_OVERLOAD _CLC_DEF int  atomic_max(volatile global int*  p, int  val)
 {
     return max(*p, val);
@@ -208,6 +368,28 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_max(volatile local  uint* p, uint val)
     return max(*p, val);
 }
 
+/* 64 bits atomic max */
+_CLC_OVERLOAD _CLC_DEF long  atomic_max(volatile global long*  p, long  val)
+{
+    return max(*p, val);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_max(volatile global ulong* p, ulong val)
+{
+    return max(*p, val);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_max(volatile local  long*  p, long  val)
+{
+    return max(*p, val);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_max(volatile local  ulong* p, ulong val)
+{
+    return max(*p, val);
+}
+
+/* 32 bits atomic and */
 _CLC_OVERLOAD _CLC_DEF int  atomic_and(volatile global int*  p, int  val)
 {
     return __sync_fetch_and_and(p, val, __ATOMIC_RELAXED);
@@ -228,7 +410,28 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_and(volatile local  uint* p, uint val)
     return __sync_fetch_and_and(p, val, __ATOMIC_RELAXED);
 }
 
+/* 64 bits atomic and */
+_CLC_OVERLOAD _CLC_DEF long  atomic_and(volatile global long*  p, long  val)
+{
+    return __sync_fetch_and_and(p, val, __ATOMIC_RELAXED);
+}
 
+_CLC_OVERLOAD _CLC_DEF ulong atomic_and(volatile global ulong* p, ulong val)
+{
+    return __sync_fetch_and_and(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_and(volatile local  long*  p, long  val)
+{
+    return __sync_fetch_and_and(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_and(volatile local  ulong* p, ulong val)
+{
+    return __sync_fetch_and_and(p, val, __ATOMIC_RELAXED);
+}
+
+/* 32 bits atomic or */
 _CLC_OVERLOAD _CLC_DEF int  atomic_or(volatile global int*  p, int  val)
 {
     return __sync_fetch_and_or(p, val, __ATOMIC_RELAXED);
@@ -249,6 +452,28 @@ _CLC_OVERLOAD _CLC_DEF uint atomic_or(volatile local  uint* p, uint val)
     return __sync_fetch_and_or(p, val, __ATOMIC_RELAXED);
 }
 
+/* 64 bits atomic or */
+_CLC_OVERLOAD _CLC_DEF long  atomic_or(volatile global long*  p, long  val)
+{
+    return __sync_fetch_and_or(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_or(volatile global ulong* p, ulong val)
+{
+    return __sync_fetch_and_or(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_or(volatile local  long*  p, long  val)
+{
+    return __sync_fetch_and_or(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_or(volatile local  ulong* p, ulong val)
+{
+    return __sync_fetch_and_or(p, val, __ATOMIC_RELAXED);
+}
+
+/* 32 bits atomic xor */
 _CLC_OVERLOAD _CLC_DEF int  atomic_xor(volatile global int*  p, int  val)
 {
     return __sync_fetch_and_xor(p, val, __ATOMIC_RELAXED);
@@ -265,6 +490,27 @@ _CLC_OVERLOAD _CLC_DEF int  atomic_xor(volatile local  int*  p, int  val)
 }
 
 _CLC_OVERLOAD _CLC_DEF uint atomic_xor(volatile local  uint* p, uint val)
+{
+    return __sync_fetch_and_xor(p, val, __ATOMIC_RELAXED);
+}
+
+/* 64 bits atomic xor */
+_CLC_OVERLOAD _CLC_DEF long  atomic_xor(volatile global long*  p, long  val)
+{
+    return __sync_fetch_and_xor(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_xor(volatile global ulong* p, ulong val)
+{
+    return __sync_fetch_and_xor(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF long  atomic_xor(volatile local  long*  p, long  val)
+{
+    return __sync_fetch_and_xor(p, val, __ATOMIC_RELAXED);
+}
+
+_CLC_OVERLOAD _CLC_DEF ulong atomic_xor(volatile local  ulong* p, ulong val)
 {
     return __sync_fetch_and_xor(p, val, __ATOMIC_RELAXED);
 }
