@@ -1808,64 +1808,125 @@ _CLC_OVERLOAD _CLC_INLINE double3 fast_normalize(double3 p)  { return p / fast_l
 _CLC_OVERLOAD _CLC_INLINE double4 fast_normalize(double4 p)  { return p / fast_length(p); }
 
 /*-----------------------------------------------------------------------------
-* Atomics
+* Atomics for 32 bits
 *----------------------------------------------------------------------------*/
 _CLC_OVERLOAD _CLC_DECL int  atomic_add(volatile global int*  p, int  val);
-_CLC_OVERLOAD _CLC_DECL uint atomic_add(volatile global uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_add(volatile local  int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_add(volatile local  uint* p, uint val); 
+_CLC_OVERLOAD _CLC_DECL uint atomic_add(volatile global uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_add(volatile local  int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_add(volatile local  uint* p, uint val);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_sub(volatile global int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_sub(volatile global uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_sub(volatile local  int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_sub(volatile local  uint* p, uint val); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_sub(volatile global int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_sub(volatile global uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_sub(volatile local  int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_sub(volatile local  uint* p, uint val);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_xchg(volatile global int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_xchg(volatile global uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL float atomic_xchg(volatile global float* p, float val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_xchg(volatile local  int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_xchg(volatile local  uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL float atomic_xchg(volatile local  float* p, float val); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_xchg(volatile global int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_xchg(volatile global uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL float atomic_xchg(volatile global float* p, float val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_xchg(volatile local  int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_xchg(volatile local  uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL float atomic_xchg(volatile local  float* p, float val);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_inc(volatile global int*  p); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_inc(volatile global uint* p); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_inc(volatile local  int*  p); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_inc(volatile local  uint* p); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_inc(volatile global int*  p);
+_CLC_OVERLOAD _CLC_DECL uint atomic_inc(volatile global uint* p);
+_CLC_OVERLOAD _CLC_DECL int  atomic_inc(volatile local  int*  p);
+_CLC_OVERLOAD _CLC_DECL uint atomic_inc(volatile local  uint* p);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_dec(volatile global int*  p); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_dec(volatile global uint* p); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_dec(volatile local  int*  p); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_dec(volatile local  uint* p); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_dec(volatile global int*  p);
+_CLC_OVERLOAD _CLC_DECL uint atomic_dec(volatile global uint* p);
+_CLC_OVERLOAD _CLC_DECL int  atomic_dec(volatile local  int*  p);
+_CLC_OVERLOAD _CLC_DECL uint atomic_dec(volatile local  uint* p);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_cmpxchg(volatile global int*  p, int  cmp, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_cmpxchg(volatile global uint* p, uint cmp, uint val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_cmpxchg(volatile local  int*  p, int  cmp, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_cmpxchg(volatile local  uint* p, uint cmp, uint val); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_cmpxchg(volatile global int*  p, int  cmp, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_cmpxchg(volatile global uint* p, uint cmp, uint val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_cmpxchg(volatile local  int*  p, int  cmp, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_cmpxchg(volatile local  uint* p, uint cmp, uint val);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_min(volatile global int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_min(volatile global uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_min(volatile local  int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_min(volatile local  uint* p, uint val); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_min(volatile global int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_min(volatile global uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_min(volatile local  int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_min(volatile local  uint* p, uint val);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_max(volatile global int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_max(volatile global uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_max(volatile local  int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_max(volatile local  uint* p, uint val); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_max(volatile global int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_max(volatile global uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_max(volatile local  int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_max(volatile local  uint* p, uint val);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_and(volatile global int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_and(volatile global uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_and(volatile local  int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_and(volatile local  uint* p, uint val); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_and(volatile global int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_and(volatile global uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_and(volatile local  int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_and(volatile local  uint* p, uint val);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_or(volatile global int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_or(volatile global uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_or(volatile local  int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_or(volatile local  uint* p, uint val); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_or(volatile global int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_or(volatile global uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_or(volatile local  int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_or(volatile local  uint* p, uint val);
 
-_CLC_OVERLOAD _CLC_DECL int  atomic_xor(volatile global int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_xor(volatile global uint* p, uint val); 
-_CLC_OVERLOAD _CLC_DECL int  atomic_xor(volatile local  int*  p, int  val); 
-_CLC_OVERLOAD _CLC_DECL uint atomic_xor(volatile local  uint* p, uint val); 
+_CLC_OVERLOAD _CLC_DECL int  atomic_xor(volatile global int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_xor(volatile global uint* p, uint val);
+_CLC_OVERLOAD _CLC_DECL int  atomic_xor(volatile local  int*  p, int  val);
+_CLC_OVERLOAD _CLC_DECL uint atomic_xor(volatile local  uint* p, uint val);
+
+
+/*-----------------------------------------------------------------------------
+* Atomics for 64 bits
+*----------------------------------------------------------------------------*/
+_CLC_OVERLOAD _CLC_DECL long  atomic_add(volatile global long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_add(volatile global ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_add(volatile local  long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_add(volatile local  ulong* p, ulong val);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_sub(volatile global long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_sub(volatile global ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_sub(volatile local  long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_sub(volatile local  ulong* p, ulong val);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_xchg(volatile global long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_xchg(volatile global ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL float atomic_xchg(volatile global float* p, float val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_xchg(volatile local  long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_xchg(volatile local  ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL float atomic_xchg(volatile local  float* p, float val);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_inc(volatile global long*  p);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_inc(volatile global ulong* p);
+_CLC_OVERLOAD _CLC_DECL long  atomic_inc(volatile local  long*  p);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_inc(volatile local  ulong* p);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_dec(volatile global long*  p);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_dec(volatile global ulong* p);
+_CLC_OVERLOAD _CLC_DECL long  atomic_dec(volatile local  long*  p);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_dec(volatile local  ulong* p);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_cmpxchg(volatile global long*  p, long  cmp, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_cmpxchg(volatile global ulong* p, ulong cmp, ulong val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_cmpxchg(volatile local  long*  p, long  cmp, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_cmpxchg(volatile local  ulong* p, ulong cmp, ulong val);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_min(volatile global long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_min(volatile global ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_min(volatile local  long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_min(volatile local  ulong* p, ulong val);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_max(volatile global long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_max(volatile global ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_max(volatile local  long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_max(volatile local  ulong* p, ulong val);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_and(volatile global long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_and(volatile global ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_and(volatile local  long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_and(volatile local  ulong* p, ulong val);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_or(volatile global long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_or(volatile global ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_or(volatile local  long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_or(volatile local  ulong* p, ulong val);
+
+_CLC_OVERLOAD _CLC_DECL long  atomic_xor(volatile global long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_xor(volatile global ulong* p, ulong val);
+_CLC_OVERLOAD _CLC_DECL long  atomic_xor(volatile local  long*  p, long  val);
+_CLC_OVERLOAD _CLC_DECL ulong atomic_xor(volatile local  ulong* p, ulong val);
 
 #define atom_add atomic_add
 #define atom_sub atomic_sub
