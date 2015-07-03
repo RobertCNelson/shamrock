@@ -27,7 +27,7 @@
    THE SOFTWARE.
 */
 
-#include "clc.h"
+#include "cpu.h"
 
 #ifdef cl_khr_fp64
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
@@ -3639,7 +3639,7 @@ double3 convert_double3(double3 x)
 #endif
 
 
-#if 0 // ASW
+#if 1 // ASW
 
 _CLC_DEF _CLC_OVERLOAD
 char convert_char_rtz(char x)
@@ -12823,7 +12823,7 @@ _CLC_DEF _CLC_OVERLOAD
 ulong3 convert_ulong3_rtn(ulong3 x)
 {
   return (ulong3)(convert_ulong2(x.s01), convert_ulong(x.s2));
-t
+}
 #endif
 _CLC_DEF _CLC_OVERLOAD
 char convert_char_sat(char x)
