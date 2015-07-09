@@ -75,6 +75,11 @@ SET(CMAKE_VERBOSE_MAKEFILE TRUE)
 # Do not use system installed versions
 Find_Package(LLVM REQUIRED)
 Find_Package(Clang REQUIRED)
+# Shamrock build requires headers in standard location, result of
+#   apt-get install opencl-headers (eg: on Ubuntu)
+if (SHAMROCK_BUILD)
+    Find_Package(OpenCLHeaders 1.2 EXACT REQUIRED)
+endif()
 
 # OpenCL requires boost headers. If boost is installed to some directory
 # other than /usr/include then define BOOST_INCLUDEDIR as below:
@@ -141,8 +146,8 @@ ENDIF (BUILD_TESTS)
 endif()
 
 # install OCL builtin and extension headers in opencl-headers package installation directory.
-# TODO: We should require that the Khronos OpenCL headers have already been installed there.
 if (SHAMROCK_BUILD)
+# TODO: Android may not have a /usr/include directory.
 #install(DIRECTORY include DESTINATION /usr ${OCL_DPERMS})
 #install(DIRECTORY include/CL DESTINATION /usr/include ${OCL_DPERMS})
 install(FILES include/clc.h DESTINATION /usr/include/CL )
