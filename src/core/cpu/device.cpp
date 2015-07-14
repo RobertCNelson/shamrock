@@ -693,9 +693,7 @@ cl_int CPUDevice::info(cl_device_info param_name,
                           " cl_khr_local_int32_base_atomics"
                           " cl_khr_local_int32_extended_atomics"
                           " cl_khr_byte_addressable_store"
-                          " cl_khr_fp64"
-                          " cl_khr_int64_base_atomics"
-                          " cl_khr_int64_extended_atomics");
+                          " cl_khr_fp64");
             break;
 
         case CL_DEVICE_PLATFORM:
