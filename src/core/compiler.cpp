@@ -260,6 +260,8 @@ int Compiler::compile(const std::string &options,
         }
     }
 
+    prep_opts.addMacroDef("__OPENCL_C_VERSION__=120");
+
     add_macrodefs_for_supported_opencl_extensions(prep_opts);  
 
     // Set invocation options
