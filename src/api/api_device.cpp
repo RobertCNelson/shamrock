@@ -99,6 +99,7 @@ clRetainDevice(cl_device_id device)
 
     device->reference();
 
+    return CL_SUCCESS;
 }
 
 cl_int
