@@ -1,4 +1,4 @@
-Shamrock: an OpenCL 1.1 implementation based on clover
+Shamrock: an OpenCL 1.2 implementation based on clover
 
 This is a continuation of the clover OpenCL project:
 	http://people.freedesktop.org/~steckdenis/clover
@@ -26,7 +26,7 @@ BUILD
 LLVM Configuration:
 -------------------
 
-This was tested using LLVM 3.5.0 stable release from:
+This was tested using LLVM 3.6.0 stable release from:
 http://llvm.org/releases/download.html
 
 Note: LLVM must be configured and built with certain options to link with
@@ -39,12 +39,12 @@ into /opt/llvm:
 % make -j4 REQUIRES_RTTI=1
 % sudo make -j4 install
 
-See:  http://llvm.org/releases/3.5.0/docs/HowToBuildOnARM.html  for updates.
+See:  http://llvm.org/releases/3.6.0/docs/HowToBuildOnARM.html  for updates.
 
 Shamrock Build:
 ---------------
 
-Current Branch: Khronos_conformance
+Current Branch: master 
 
 Usage: cmake <project_src_dir> <optional_defines>*
 
@@ -77,25 +77,26 @@ Latest Results:
 shamrock_build> make test
 Running tests...
 /usr/bin/ctest --force-new-ctest-process 
-Test project /home/user/shamrock_build
+Test project /home/gpitney/shamrock_build
     Start 1: platform
-1/8 Test #1: platform .........................   Passed    0.02 sec
+1/8 Test #1: platform .........................   Passed    0.03 sec
     Start 2: device
 2/8 Test #2: device ...........................   Passed    0.02 sec
     Start 3: context
 3/8 Test #3: context ..........................   Passed    0.02 sec
     Start 4: commandqueue
-4/8 Test #4: commandqueue .....................   Passed    1.06 sec
+4/8 Test #4: commandqueue .....................   Passed    1.05 sec
     Start 5: mem
-5/8 Test #5: mem ..............................   Passed    0.02 sec
+5/8 Test #5: mem ..............................   Passed    0.03 sec
     Start 6: kernel
-6/8 Test #6: kernel ...........................   Passed    3.43 sec
+6/8 Test #6: kernel ...........................   Passed    3.35 sec
     Start 7: program
-7/8 Test #7: program ..........................   Passed    5.21 sec
+7/8 Test #7: program ..........................   Passed    6.35 sec
     Start 8: builtins
-8/8 Test #8: builtins .........................   Passed    3.45 sec
+8/8 Test #8: builtins .........................   Passed    4.20 sec
 
 100% tests passed, 0 tests failed out of 8
+
 
 PIGLIT TESTS
 ============
@@ -105,7 +106,7 @@ If running PIGLIT OpenCL tests, to build for the OpenCL piglit binaries only:
 % cd piglit
 % cmake -DPIGLIT_BUILD_CL_TESTS=ON -DPIGLIT_BUILD_GL_TESTS=OFF \
   -DPIGLIT_USE_WAFFLE=OFF -DPIGLIT_USE_GLUT=OFF
-% export PIGLIT_CL_VERSION=11
+% export PIGLIT_CL_VERSION=12
 % make
 
 To run OpenCL tests, results in results/all_cl/main
@@ -115,8 +116,8 @@ To run OpenCL tests, results in results/all_cl/main
 Debugging OpenCL Kernels:
 =========================
 
-1. printf: A prototype has been added to include/CL/cpu.h, allowing printf
-   to be called from OpenCL kernels.
+1. printf: is a new v1.2 builtin, allowing printf to be called from OpenCL 
+   kernels.
 
 2. gdb:
    The kernel is called from Coal::CPUKernelWorkGroup::run(), at the
