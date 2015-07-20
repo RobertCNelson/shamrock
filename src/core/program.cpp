@@ -647,8 +647,8 @@ cl_int Program::compile(const char *options,
     // Per the v1.2 spec for clBuildProgram() and clCompileProgram():
     // "Returns: CL_INVALID_OPERATION if there are kernel objects attached to program."
     // Note this causes some Khronos tests to fail, like test_compiler options_build_macro,
-    // options_build_macro_existence, and options_include_directory, as they violate the
-    // spec in this regard.
+    // options_build_macro_existence, and options_include_directory, and
+    // test_api binary_create, as they all violate the spec in this regard.
     if (getNumKernels() > 0) {
         p_state = Failed;
         return(CL_INVALID_OPERATION);
