@@ -544,7 +544,7 @@ cl_int CPUDevice::info(cl_device_info param_name,
             break;
 
         case CL_DEVICE_MAX_PARAMETER_SIZE:
-            SIMPLE_ASSIGN(size_t, 65536);
+            SIMPLE_ASSIGN(size_t, 1024);        // This is the minimum
             break;
 
         case CL_DEVICE_MAX_SAMPLERS:
