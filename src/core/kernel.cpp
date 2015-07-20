@@ -621,6 +621,9 @@ void  Kernel::fillArgsInfo(llvm::Module *module) const
                         llvm::cast<llvm::MDString>(meta_node->getOperand(0));
             std::string name = md_name->getString().str();
 
+            if (name == "vec_type_hint")
+	        continue;
+
             // metadata value
             for (uint k = 1; k < num_ope; ++k) {
                 llvm::Value *value = NULL;
