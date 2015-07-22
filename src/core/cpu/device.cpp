@@ -599,9 +599,16 @@ cl_int CPUDevice::info(cl_device_info param_name,
 	    break;
 
         case CL_DEVICE_MAX_MEM_ALLOC_SIZE:
+	    {
+            // Minimum size must be 1/4 the size of CL_DEVICE_GLOBAL_MEM_SIZE:
+            unsigned long global_size_bytes = parse_file_line_value("/proc/meminfo",
+                                              "MemTotal:", 512*1024) * 1024;
+            SIMPLE_ASSIGN(cl_ulong, global_size_bytes >> 2);
+	    }
+            break;
+
         case CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE:
             // TODO: 1 Gio seems to be enough for software acceleration
-
 #if defined(__arm__)
             SIMPLE_ASSIGN(cl_ulong, HALF_GIGABYTE);
 #else
