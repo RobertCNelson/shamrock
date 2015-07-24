@@ -30,6 +30,7 @@
  * \brief CPU Device
  */
 
+#include "../platform.h"
 #include "device.h"
 #include "buffer.h"
 #include "kernel.h"
@@ -704,7 +705,7 @@ cl_int CPUDevice::info(cl_device_info param_name,
             break;
 
         case CL_DEVICE_PLATFORM:
-            SIMPLE_ASSIGN(cl_platform_id, 0);
+            SIMPLE_ASSIGN(cl_platform_id, &the_platform);
             break;
 
         case CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF:
