@@ -1,6 +1,6 @@
 Khronos Basic Test Failures
 ===========================
-Khronos Test Version: OpenCL 1.1: April 4, 2010.
+Khronos Test Version: OpenCL 1.2
 
 Usage:  
 % cd opencl_conformance/test_conformance/basic
@@ -77,59 +77,6 @@ test nevertheless expects the cast to compile.
 
 It seems the Khronos test and clang are in conflict.
 
-kernel_memory_alignment_constant.txt
-====================================
-Failure Mode:   
--------------
-This fails due to inability to compile a Khronos test generated CL program.
-
-
-kernel_memory_alignment_constant...
-Device version string: "OpenCL 1.1 "
-Testing char...
-        Testing parameter kernel...
-        Testing constant kernel...
-program.cl:2:17: error: variable in constant address space must be initialized
-program.cl:3:18: error: variable in constant address space must be initialized
-program.cl:4:18: error: variable in constant address space must be initialized
-program.cl:5:18: error: variable in constant address space must be initialized
-program.cl:6:18: error: variable in constant address space must be initialized
-program.cl:7:19: error: variable in constant address space must be initialized
-
-ERROR: clBuildProgram failed! (CL_BUILD_PROGRAM_FAILURE from /home/gpitney/open
-Original source is: ------------
-
-  constant char mem0[3];
-  constant char2 mem2[3];
-  constant char3 mem3[3];
-  constant char4 mem4[3];
-  constant char8 mem8[3];
-  constant char16 mem16[3];
-
-kernel void test(global ulong *results)
-{
-   results[0] = (ulong)&mem0;
-   results[1] = (ulong)&mem2;
-   results[2] = (ulong)&mem3;
-   results[3] = (ulong)&mem4;
-   results[4] = (ulong)&mem8;
-   results[5] = (ulong)&mem16;
-}
-
-
-Analysis:
---------
-Interestingly, this generated CL code compiles on Keystone 
-(not using MCJIT, using LLVM 3.3), and the test passes.
-
-Some digging shows this clang error was added after LLVM 3.3 
-(LLVM version used by TI Keystone, which explains why it passes there):
-http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131230/096405.html
-
-In this case, the LLVM clang compiler and the Khronos tests seem to be
-in conflict.
-
-
 local_kernel_scope
 ==================
 Failure Mode:   
@@ -163,3 +110,48 @@ For this OpenCL code:
 The expectation is that clang would have generated a thread_local attribute
 on OpenCL __local variables, allowing the MCJIT/ARM backend to allocate
 the variable localStorage into TLS at runtime.
+
+kernel_memory_alignment_private
+===============================
+Failure Mode:
+------------
+[adding printing of the kernel from the test]
+[...]
+Testing short...
+	Testing local kernel...
+Kernel is:
+
+kernel void test(global ulong *results)
+{
+   private short mem0[3];
+   private short2 mem2[3];
+   private short3 mem3[3];
+   private short4 mem4[3];
+   private short8 mem8[3];
+   private short16 mem16[3];
+   results[0] = (ulong)&mem0[0];
+   results[1] = (ulong)&mem2[0];
+   results[2] = (ulong)&mem3[0];
+   results[3] = (ulong)&mem4[0];
+   results[4] = (ulong)&mem8[0];
+   results[5] = (ulong)&mem16[0];
+}
+
+	Vector size 16 failed: 0xb3b48b28 is not properly aligned.
+[...]
+[ more vector not aligned messages ensue for other types]
+
+Analysis:
+--------
+Per the v1.2 spec, section 6.1.5 "Alignment of Types":
+
+"The OpenCL compiler is responsible for aligning data items to the
+appropriate alignment as required by the data type."
+
+Dumping the module target datalayout gave the following:
+
+   target datalayout = "e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64"
+
+I expect this is a possible issue with the LLVM backend, unless
+there are some clang/OpenCL comiler options which might force alignment
+different than what the LLVM target code generator is producing.
