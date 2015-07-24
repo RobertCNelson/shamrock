@@ -721,6 +721,18 @@ KernelEvent::KernelEvent(CommandQueue *parent,
   p_work_dim(work_dim), p_kernel(kernel)
 {
     clRetainKernel((cl_kernel) p_kernel);
+    // Also, retain any buffers in case the client releases during execute,
+    // as is done in the Khronos test_api release_during_execute test!.
+    // Check arguments (buffer alignment, image size, ...)
+    for (unsigned int i=0; i < kernel->numArgs(); ++i) {
+        const Kernel::Arg *a = kernel->arg(i);
+
+        if (a->kind() == Kernel::Arg::Buffer && a->file() != Kernel::Arg::Local)
+        {
+            MemObject *buffer = *(MemObject **)(a->value(0));
+            clRetainMemObject((cl_mem)buffer);
+        }
+    }
 
     if (*errcode_ret != CL_SUCCESS) return;
 
@@ -938,6 +950,15 @@ KernelEvent::KernelEvent(CommandQueue *parent,
 
 KernelEvent::~KernelEvent()
 {
+    for (unsigned int i=0; i < p_kernel->numArgs(); ++i) {
+        const Kernel::Arg *a = p_kernel->arg(i);
+
+        if (a->kind() == Kernel::Arg::Buffer && a->file() != Kernel::Arg::Local)
+        {
+            MemObject *buffer = *(MemObject **)(a->value(0));
+            clReleaseMemObject((cl_mem)buffer);
+        }
+    }
     clReleaseKernel((cl_kernel) p_kernel);
 }
 
