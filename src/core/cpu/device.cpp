@@ -609,16 +609,11 @@ cl_int CPUDevice::info(cl_device_info param_name,
             break;
 
         case CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE:
-            // TODO: 1 Gio seems to be enough for software acceleration
-#if defined(__arm__)
-            SIMPLE_ASSIGN(cl_ulong, HALF_GIGABYTE);
-#else
-            SIMPLE_ASSIGN(cl_ulong, ONE_GIGABYTE);
-#endif
+            SIMPLE_ASSIGN(cl_ulong, 64<<10);
             break;
 
         case CL_DEVICE_MAX_CONSTANT_ARGS:
-            SIMPLE_ASSIGN(cl_uint, 65536);
+            SIMPLE_ASSIGN(cl_uint, 8);
             break;
 
         case CL_DEVICE_LOCAL_MEM_TYPE:
