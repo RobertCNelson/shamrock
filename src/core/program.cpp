@@ -904,6 +904,9 @@ cl_int Program::build(const char *options,
         result = link(options, pfn_notify, user_data, num_devices,
                       device_list, num_input_programs, input_programs);
     }
+    else if (result == CL_COMPILE_PROGRAM_FAILURE) {
+        result = CL_BUILD_PROGRAM_FAILURE;  // clBuildProgram expects this error code.
+    }
 
     return result;
 }
