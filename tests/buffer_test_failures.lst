@@ -1,0 +1,26 @@
+Khronos Buffer Test Failures
+===========================
+Khronos Test Version: OpenCL 1.2
+
+Usage:  
+% cd opencl_conformance/test_conformance/api
+% test_buffers <test-name>
+
+
+<test-name>: 
+Failure Mode:
+Analysis:
+
+
+buffer_read_half
+buffer_write_half
+mem_alloc_ref_flags
+=============
+Failure Mode:   
+------------
+test currently not implemented
+
+Analysis:
+---------
+The Khronos test is not implemented, so just reports "Not Implemented" instead
+of passing.

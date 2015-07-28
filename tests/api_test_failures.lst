@@ -1,0 +1,36 @@
+Khronos API Test Failures
+===========================
+Khronos Test Version: OpenCL 1.2
+
+Usage:  
+% cd opencl_conformance/test_conformance/api
+% test_api <test-name>
+
+
+<test-name>: 
+Failure Mode:
+Analysis:
+
+binary_create
+=============
+Failure Mode:   
+------------
+ERROR: Unable to build binary program! (CL_INVALID_OPERATION from /home/gpitney/opencl_1_2_conformance/test_conformance/api/test_binary.cpp:113)
+
+
+Analysis:
+---------
+This is expected.  It is my claim that this test is violating the spec, by
+attempting to build a proram with kernels already attached to the program.
+
+See this comment in src/core/program.cpp:
+// Per the v1.2 spec for clBuildProgram() and clCompileProgram():
+// "Returns: CL_INVALID_OPERATION if there are kernel objects attached to program."
+// Note this causes some Khronos tests to fail, like 
+// test_compiler options_build_macro options_build_macro_existence options_include_directory, and
+// test_api binary_create, as they all violate the spec in this regard.
+    if (getNumKernels() > 0) {
+	p_state = Failed;
+        return(CL_INVALID_OPERATION);
+    }
+

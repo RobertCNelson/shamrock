@@ -1,0 +1,42 @@
+Issues:
+=======
+
+
+1. Khronos tests:
+
+  The majority of basic v1.2 Khronos tests pass, proving that MCJIT is working
+  pretty well for ARM.
+
+  The following results were obtained with Shamrock on a Chromebook 2
+  running Ubuntu 13.10 (ARMv7, 4 active cores).
+
+  computeinfo:  1/1   PASS
+  api:		71/72 PASS
+  basic:	86/95 PASS
+  buffers:	90/93 PASS
+  commonfns:	17/17 PASS
+
+  The Khronos test failures were diagnosed and documented here:
+
+  tests/basic_test_failures.lst
+  tests/api_test_failures.lst
+  tests/buffer_test_failures.lst
+
+2. piglit tests:
+
+   The piglit tests were run on a HiKey board (ARMv8).
+
+   1530/1543 tests passed.
+
+   The failures included 8 API tests, and 5 for the builtin vector-conversion
+   test (which passes on ARMv7).
+
+
+3. DSP Device support:
+
+  This requires extra TI DSP compiler, DSP side files and builtin library
+  support which is released by TI as part of its Keystone II MCSDK-HPC product.
+
+  Though the CMake files allow building for TI devices, all the DSP side files
+  may not yet be at git.ti.com/opencl, so the build defaults to 
+  SHAMROCK build type, building for CPU Device (ARM) only.

@@ -50,7 +50,7 @@ Usage: cmake <project_src_dir> <optional_defines>*
 
 If LLVM lives in a private path:
    -DLLVM_CONFIG_EXECUTABLE=<path to private llvm-config version>
-If your Clang is installed to a different location than LLVM,
+If Clang is installed to a different location than LLVM,
 then define CLANG_INCLUDE_DIR and CLANG_LIB_DIR on the cmake cmd line:
   -DCLANG_INCLUDE_DIR=/opt/clang/include -DCLANG_LIB_DIR=/opt/clang/lib
 

@@ -1,64 +1,36 @@
 Things To Do:
-
-
-Roadmap
-=======
+=============
 
 1. Resync with git.ti.com/opencl.
 
    Update to latest common code from the TI repo.
 
-2. Merge TI OpenCL DSP Device support from git.ti.com/opencl.
+2. Add ICD support
+
+   Adding ICD support requires embedding an ICD Dispatch structure
+   into each public OpenCL object, and registering the vendor's
+   implementation with the system so an ICD loader can find and invoke it.
+
+   Though the effort does not appear too difficult, the payoff is really
+   when there are other ICD-compatible OpenCL drivers for other
+   devices (GPUs, DSPs) available with which to run concurrently.
+
+3. Merge TI OpenCL DSP Device support from git.ti.com/opencl.
 
    Get the CPU and DSP device support to act as plugins to a common
    framework, so that they may coexist.
 
-3. Validate CPU Device for ARMv8, x86_64
+4. Builtins:
 
-   Ensure same tests that pass on ARM also work on x86.
+   The current clc.h has its roots in LLVM libclc, but has diverged.  It
+   may be interesting to resync with that project, if those builtins
+   actually pass the Khronos tests.
 
-4. Update to OpenCL v 1.2
+5. Update to OpenCL v 2.0
 
-5. Move to SPIR.
+   An HSA compliant platform would benefit this effort.
 
-   Once a SPIR to ARM backend becomes available, move to SPIR as a more
+6. Move to SPIR, or SPIR-V.
+
+   Once a SPIR to ARM backend becomes available, could move to SPIR as a more
    standard IR.
-
-Issues:
-=======
-
-1. Khronos tests:
-
-  The majority of Khronos basic tests pass, proving that MCJIT is working
-  pretty well for ARM.
-
-  The remaining Khronos 'basic' test failures (ARM only), documented here:
-
-  tests/basic_test_failures.lst
-
-  Some of the other Khronos tests behond "basic" have been run on ARM,
-  but the failures have yet to be analysed.
-  computeinfo:  PASS
-  api:		55/61 PASS
-  basic:	87/95 PASS
-  buffers:	78/81 PASS
-  commonfns:	17/17 PASS
-
-2. Builtins:
-
-  atomic builtins not yet implemented.
-  math builtins implemented (using libm or builtins), but not all pass the
-  Khronos criteria for accuracy.
-
-  The current clc.h has its roots in LLVM libclc, but has diverged.  It
-  may be interesting to resync with that project, if those builtins
-  actually pass the Khronos tests.
-
-3. DSP Device support:
-
-  This requires extra TI DSP compiler, DSP side files and builtin library
-  support which is released by TI as part of its Keystone II MCSDK-HPC product.
-
-  Though the CMake files allow building for TI devices, all the DSP side files
-  are not in opensource, so the build defaults to SHAMROCK build type,
-  building for CPU Device only.
