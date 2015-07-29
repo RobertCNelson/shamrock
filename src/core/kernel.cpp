@@ -83,6 +83,10 @@ Kernel::~Kernel()
 static bool matchDeviceOrParent(DeviceInterface *device_dep, DeviceInterface *device)
 {
     bool match = (device_dep == device);
+
+    if (device == NULL)
+        return match;
+
     DeviceInterface *next_device = device->parentDevice();
 
     // If no match, device could be a sub-device - so go up the hierarchy checking parents:
@@ -756,6 +760,9 @@ cl_int Kernel::workGroupInfo(DeviceInterface *device,
         size_t three_size_t[3];
         cl_ulong cl_ulong_var;
     };
+
+    if (device == NULL)
+        return CL_INVALID_DEVICE;
 
     const DeviceDependent &dep = deviceDependent(device);
 
