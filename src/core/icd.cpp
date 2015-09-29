@@ -29,7 +29,10 @@
 #include "platform.h"
 #include "icd.h"
 
-// TODO: Ensure this matches OCL 1.2 disptach table:
+// Note: This must match the OCL 1.2 disptach table in the file icd/icd_dispatch.h
+// which is part of the ICD loader source from the Khronos website.
+// Most recently: https://www.khronos.org/registry/cl/specs/opencl-icd-1.2.11.0.tgz
+
 void * dispatch_table[] = 
 {
     (void*)   clGetPlatformIDs,
@@ -107,12 +110,14 @@ void * dispatch_table[] =
     (void*)   0, //clEnqueueAcquireGLObjects,
     (void*)   0, //clEnqueueReleaseGLObjects,
     (void*)   0, //clGetGLContextInfoKHR,
+
     (void*)   0, //clGetDeviceIDsFromD3D10KHR,
     (void*)   0, //clCreateFromD3D10BufferKHR,
     (void*)   0, //clCreateFromD3D10Texture2DKHR,
     (void*)   0, //clCreateFromD3D10Texture3DKHR,
     (void*)   0, //clEnqueueAcquireD3D10ObjectsKHR,
     (void*)   0, //clEnqueueReleaseD3D10ObjectsKHR,
+
     (void*)   clSetEventCallback,
     (void*)   clCreateSubBuffer,
     (void*)   clSetMemObjectDestructorCallback,
@@ -121,6 +126,10 @@ void * dispatch_table[] =
     (void*)   clEnqueueReadBufferRect,
     (void*)   clEnqueueWriteBufferRect,
     (void*)   clEnqueueCopyBufferRect,
+
+    (void*)   0, //clCreateSubDevicesEXT;
+    (void*)   0, //clRetainDeviceEXT;
+    (void*)   0, //clReleaseDeviceEXT;
 
     (void *)  0, //clCreateEventFromGLsyncKHR;
 
