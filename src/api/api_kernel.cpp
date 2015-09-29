@@ -34,6 +34,7 @@
 
 #include <core/program.h>
 #include <core/kernel.h>
+#include <core/deviceinterface.h>
 
 // Kernel Object APIs
 cl_kernel
@@ -229,7 +230,7 @@ clGetKernelWorkGroupInfo(cl_kernel                  kernel,
     if (!kernel->isA(Coal::Object::T_Kernel))
         return CL_INVALID_KERNEL;
 
-    return kernel->workGroupInfo((Coal::DeviceInterface *)device, param_name,
+    return kernel->workGroupInfo(pobj(device), param_name,
                                  param_value_size, param_value,
                                  param_value_size_ret);
 }

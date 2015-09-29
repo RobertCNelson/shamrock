@@ -112,9 +112,11 @@ cl_int CommandQueue::info(cl_command_queue_info param_name,
             break;
 
         case CL_QUEUE_DEVICE:
-            SIMPLE_ASSIGN(cl_device_id, p_device);
+            {
+            auto d_device = desc(p_device);
+            SIMPLE_ASSIGN(cl_device_id, d_device);
+            }
             break;
-
         case CL_QUEUE_REFERENCE_COUNT:
             SIMPLE_ASSIGN(cl_uint, references());
             break;

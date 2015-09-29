@@ -63,37 +63,41 @@ clGetDeviceIDs(cl_platform_id   platform,
 }
 
 cl_int
-clGetDeviceInfo(cl_device_id    device,
+clGetDeviceInfo(cl_device_id    d_device,
                 cl_device_info  param_name,
                 size_t          param_value_size,
                 void *          param_value,
                 size_t *        param_value_size_ret)
 {
+    auto device = pobj(d_device);
+
     if (!device->isA(Coal::Object::T_Device))
         return CL_INVALID_DEVICE;
 
-    Coal::DeviceInterface *iface = (Coal::DeviceInterface *)device;
-    return iface->info(param_name, param_value_size, param_value,
+    return device->info(param_name, param_value_size, param_value,
                        param_value_size_ret);
 }
 
 cl_int
-clCreateSubDevices(cl_device_id                         in_device,
+clCreateSubDevices(cl_device_id                         d_in_device,
                    const cl_device_partition_property * properties,
                    cl_uint                              num_devices,
                    cl_device_id *                       out_devices,
                    cl_uint *                            num_devices_ret)
 {
+    auto in_device = pobj(d_in_device);
+
     if (!in_device->isA(Coal::Object::T_Device))
         return CL_INVALID_DEVICE;
 
-    Coal::DeviceInterface *iface = (Coal::DeviceInterface *)in_device;
-    return iface->createSubDevices(properties, num_devices, out_devices, num_devices_ret);
+    return in_device->createSubDevices(properties, num_devices, out_devices, num_devices_ret);
 }
 
 cl_int
-clRetainDevice(cl_device_id device)
+clRetainDevice(cl_device_id d_device)
 {
+    auto device = pobj(d_device);
+
     if (!device->isA(Coal::Object::T_Device))
         return CL_INVALID_DEVICE;
 
@@ -103,8 +107,10 @@ clRetainDevice(cl_device_id device)
 }
 
 cl_int
-clReleaseDevice(cl_device_id device)
+clReleaseDevice(cl_device_id d_device)
 {
+    auto device = pobj(d_device);
+
     if (!device->isA(Coal::Object::T_Device))
         return CL_INVALID_DEVICE;
 

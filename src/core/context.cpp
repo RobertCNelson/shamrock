@@ -56,7 +56,7 @@ Context::Context(const cl_context_properties *properties,
                  void *user_data,
                  cl_int *errcode_ret)
 : Object(Object::T_Context, 0), p_properties(0), p_pfn_notify(pfn_notify),
-  p_user_data(user_data), p_devices(0), p_num_devices(0), p_props_len(0),
+  p_user_data(user_data), p_devices(0), p_d_devices(0), p_num_devices(0), p_props_len(0),
   p_platform(&the_platform)
 {
     if (!p_pfn_notify)
@@ -131,9 +131,10 @@ Context::Context(const cl_context_properties *properties,
 
     // Explore the devices
     p_devices = (DeviceInterface **)std::malloc(num_devices * sizeof(DeviceInterface *));
+    p_d_devices = (cl_device_id *)std::malloc(num_devices * sizeof(cl_device_id));
     p_num_devices = num_devices;
 
-    if (!p_devices)
+    if (!p_devices || !p_d_devices)
     {
         *errcode_ret = CL_OUT_OF_HOST_MEMORY;
         return;
@@ -141,7 +142,7 @@ Context::Context(const cl_context_properties *properties,
 
     for (cl_uint i=0; i<num_devices; ++i)
     {
-        cl_device_id device = devices[i];
+        auto device = pobj(devices[i]);
 
         if (device == 0)
         {
@@ -167,7 +168,8 @@ Context::Context(const cl_context_properties *properties,
         }
 
         // Add the device to the list
-        p_devices[i] = (DeviceInterface *)device;
+        p_devices[i] = device;
+        p_d_devices[i] = devices[i];
     }
 }
 
@@ -178,6 +180,9 @@ Context::~Context()
 
     if (p_devices)
         std::free((void *)p_devices);
+
+    if (p_d_devices)
+        std::free((void *)p_d_devices);
 }
 
 cl_int Context::info(cl_context_info param_name,
@@ -203,7 +208,7 @@ cl_int Context::info(cl_context_info param_name,
             break;
 
         case CL_CONTEXT_DEVICES:
-            MEM_ASSIGN(p_num_devices * sizeof(DeviceInterface *), p_devices);
+            MEM_ASSIGN(p_num_devices * sizeof(cl_device_id), p_d_devices);
             break;
 
         case CL_CONTEXT_PROPERTIES:

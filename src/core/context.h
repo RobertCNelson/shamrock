@@ -92,6 +92,7 @@ class Context : public Object
         void *p_user_data;
 
         DeviceInterface **p_devices;
+        cl_device_id *p_d_devices;
         unsigned int p_num_devices, p_props_len;
         cl_platform_id p_platform;
 };

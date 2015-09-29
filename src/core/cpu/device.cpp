@@ -377,7 +377,7 @@ cl_int CPUDevice::createSubDevices(
         if (out_devices) {
             for (int i = 0; i < num_new_devices; i++) {
                 new_device = new CPUDevice(this, partition_size);
-                out_devices[i] = (cl_device_id)new_device;
+                out_devices[i] = desc(new_device);
 		new_device->setProperties(properties);
             }
         }
@@ -744,7 +744,10 @@ cl_int CPUDevice::info(cl_device_info param_name,
             break;
 
         case CL_DEVICE_PARENT_DEVICE:
-            SIMPLE_ASSIGN(cl_device_id, p_parent_device);
+            {
+            auto d_device = desc(p_parent_device);
+            SIMPLE_ASSIGN(cl_device_id, d_device);
+            }
             break;
         case CL_DEVICE_PARTITION_MAX_SUB_DEVICES:
 	    if (numCPUs() == 1) {

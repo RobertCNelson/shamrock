@@ -34,6 +34,7 @@
 #include <core/program.h>
 #include <core/context.h>
 #include <core/platform.h>
+#include <core/deviceinterface.h>
 
 #include <cstdlib>
 
@@ -159,18 +160,22 @@ clCreateProgramWithBinary(cl_context            context,
     *errcode_ret = CL_SUCCESS;
 
     // Init program
+    Coal::DeviceInterface  **devices =
+      (Coal::DeviceInterface **)std::malloc(context_num_devices * sizeof(Coal::DeviceInterface *));
+    pobj_list(devices, device_list, num_devices);
     *errcode_ret = program->loadBinaries(binaries,
-                                         lengths, binary_status, num_devices,
-                                         (Coal::DeviceInterface * const*)device_list);
+                                         lengths, binary_status, num_devices, devices);
 
     if (*errcode_ret != CL_SUCCESS)
     {
         delete program;
         std::free(context_devices);
+        std::free(devices);
         return 0;
     }
 
     std::free(context_devices);
+    std::free(devices);
     return (cl_program)program;
 }
 
@@ -299,8 +304,11 @@ clBuildProgram(cl_program           program,
 
     if (result == CL_SUCCESS)  {
         // Build program
-        result =  program->build(options, pfn_notify, user_data, num_devices,
-                              (Coal::DeviceInterface * const*)device_list);
+        Coal::DeviceInterface  **devices =
+          (Coal::DeviceInterface **)std::malloc(num_devices * sizeof(Coal::DeviceInterface *));
+        pobj_list(devices, device_list, num_devices);
+        result =  program->build(options, pfn_notify, user_data, num_devices, devices);
+	free(devices);
     }
 
     if (pfn_notify)
@@ -332,9 +340,12 @@ clCompileProgram(cl_program           program,
         result = CL_INVALID_VALUE;
     }
     else {
-        result = program->compile(options, pfn_notify, user_data, num_devices,
-                                  (Coal::DeviceInterface * const*)device_list,
+        Coal::DeviceInterface  **devices =
+          (Coal::DeviceInterface **)std::malloc(num_devices * sizeof(Coal::DeviceInterface *));
+        pobj_list(devices, device_list, num_devices);
+        result = program->compile(options, pfn_notify, user_data, num_devices, devices,
                                   num_input_headers, input_headers, header_include_names);
+	free(devices);
     }
 
     if (pfn_notify)
@@ -391,9 +402,13 @@ clLinkProgram(cl_context           context,
     Coal::Program *program = NULL;
     if (retcode == CL_SUCCESS) {
         program = new Coal::Program(context);
-        retcode = program->link(options, pfn_notify, user_data, num_devices,
-                                (Coal::DeviceInterface * const*)device_list,
+
+        Coal::DeviceInterface  **devices =
+          (Coal::DeviceInterface **)std::malloc(num_devices * sizeof(Coal::DeviceInterface *));
+        pobj_list(devices, device_list, num_devices);
+        retcode = program->link(options, pfn_notify, user_data, num_devices, devices,
                                  num_input_programs, input_programs);
+	free(devices);
 
         // Note: Unlike clCompileProgram() and clLinkProgram(), which per the 1.2 spec,
 	// must trigger the callback whether the build succeeds or not, here we must have a
@@ -453,10 +468,10 @@ clGetProgramBuildInfo(cl_program            program,
     if (!program->isA(Coal::Object::T_Program))
         return CL_INVALID_PROGRAM;
 
-	if (!device)
+    if (!device)
         return CL_INVALID_DEVICE;
 
-    return program->buildInfo((Coal::DeviceInterface *)device, param_name,
+    return program->buildInfo(pobj(device), param_name,
                               param_value_size, param_value,
                               param_value_size_ret);
 }

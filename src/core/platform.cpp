@@ -51,6 +51,11 @@
 
 using namespace Coal;
 
+// Ensure that Class Platform remains mutable to the ICD "POD" C structure, as expected
+// by the ICD loader
+static_assert(std::is_standard_layout<Platform>::value,
+              "Class Platform must be of C++ standard layout type.");
+
 /******************************************************************************
 * begin_file_lock_crit_section
 ******************************************************************************/
@@ -99,17 +104,19 @@ static int begin_file_lock_crit_section(char* fname)
  
 namespace Coal
 {
-    Platform::Platform() : dispatch(&dispatch_table)
+    Platform::Platform(): dispatch(&dispatch_table)
     {
         char filename[] = "/var/lock/opencl";
         p_lock_fd = begin_file_lock_crit_section(filename);
 
-        p_devices.push_back((_cl_device_id*)new Coal::CPUDevice(NULL,0));
+	Coal::DeviceInterface * device = new Coal::CPUDevice(NULL,0);
+        p_devices.push_back(desc(device));
 
        // Driver class only exists for the DSPDevice, so need this guard:
 #ifndef SHAMROCK_BUILD
        for (int i = 0; i < Driver::instance()->num_dsps(); i++)
-            p_devices.push_back((_cl_device_id*)new Coal::DSPDevice(i));
+	    Coal::DeviceInterface * device = new Coal::DSPDevice(i);
+            p_devices.push_back(desc(device));
 #endif
     }
 
@@ -119,7 +126,7 @@ namespace Coal
         close(p_lock_fd);
 
         for (int i = 0; i < p_devices.size(); i++)
-            delete p_devices[i];
+	    delete pobj(p_devices[i]);
     }
 
     cl_uint Platform::getDevices(cl_device_type device_type, 
@@ -137,7 +144,9 @@ namespace Coal
         for (int d = 0; d < p_devices.size(); d++)
         {
             cl_device_type type;
-            p_devices[d]->info(CL_DEVICE_TYPE, sizeof(cl_device_type), &type,0);
+            auto device = pobj(p_devices[d]);
+
+            device->info(CL_DEVICE_TYPE, sizeof(cl_device_type), &type,0);
 
             if (type & device_type)
             {
@@ -193,16 +202,17 @@ namespace Coal
                 break;
 
             case CL_PLATFORM_EXTENSIONS:
-                // TODO add cl_khr_icd  when it works
 #ifdef SHAMROCK_BUILD
-                STRING_ASSIGN("cl_khr_byte_addressable_store cl_khr_fp64");
+                STRING_ASSIGN("cl_khr_byte_addressable_store cl_khr_fp64 cl_khr_icd");
 #else
-                STRING_ASSIGN("cl_khr_byte_addressable_store cl_khr_fp64 cl_ti_msmc_buffers");
+                STRING_ASSIGN("cl_khr_byte_addressable_store cl_khr_fp64 cl_ti_msmc_buffers cl_khr_icd");
 #endif
                 break;
 
             case CL_PLATFORM_ICD_SUFFIX_KHR:
-#ifndef SHAMROCK_BUILD
+#ifdef SHAMROCK_BUILD
+                STRING_ASSIGN("Linaro");
+#else
                 STRING_ASSIGN("TI");
 #endif
                 break;

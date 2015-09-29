@@ -131,7 +131,7 @@ MemObject::~MemObject()
 cl_int MemObject::init()
 {
     // Get the device list of the context
-    DeviceInterface **devices = 0;
+    cl_device_id *devices = 0;
     cl_int rs;
 
     rs = ((Context *)parent())->info(CL_CONTEXT_NUM_DEVICES,
@@ -142,14 +142,13 @@ cl_int MemObject::init()
         return rs;
 
     p_devices_to_allocate = p_num_devices;
-    devices = (DeviceInterface **)std::malloc(p_num_devices *
-                                        sizeof(DeviceInterface *));
+    devices = (cl_device_id *)std::malloc(p_num_devices * sizeof(cl_device_id));
 
     if (!devices)
         return CL_OUT_OF_HOST_MEMORY;
 
     rs = ((Context *)parent())->info(CL_CONTEXT_DEVICES,
-                                     p_num_devices * sizeof(DeviceInterface *),
+                                     p_num_devices * sizeof(cl_device_id),
                                      devices, 0);
 
     if (rs != CL_SUCCESS)
@@ -194,7 +193,7 @@ cl_int MemObject::init()
 
     for (unsigned int i=0; i<p_num_devices; ++i)
     {
-        DeviceInterface *device = devices[i];
+        auto device = pobj(devices[i]);
 
         rs = CL_SUCCESS;
         p_devicebuffers[i] = device->createDeviceBuffer(this, &rs);

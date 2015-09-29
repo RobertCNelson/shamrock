@@ -79,13 +79,13 @@ BufferEvent::BufferEvent(CommandQueue *parent,
     }
 
     // Alignment of SubBuffers
-    DeviceInterface *device = 0;
-    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(DeviceInterface *),
-                                &device, 0);
+    cl_device_id d_device = 0;
+    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(cl_device_id), &d_device, 0);
 
     if (*errcode_ret != CL_SUCCESS)
         return;
 
+    auto device = pobj(d_device);
     if (!isSubBufferAligned(buffer, device))
     {
         *errcode_ret = CL_MISALIGNED_SUB_BUFFER_OFFSET;
@@ -460,13 +460,12 @@ CopyBufferEvent::CopyBufferEvent(CommandQueue *parent,
     }
 
     // Check alignement of destination
-    DeviceInterface *device = 0;
-    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(DeviceInterface *),
-                                &device, 0);
-
+    cl_device_id d_device = 0;
+    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(cl_device_id), &d_device, 0);
     if (*errcode_ret != CL_SUCCESS)
         return;
 
+    auto device = pobj(d_device);
     if (!isSubBufferAligned(destination, device))
     {
         *errcode_ret = CL_MISALIGNED_SUB_BUFFER_OFFSET;
@@ -629,15 +628,14 @@ NativeKernelEvent::NativeKernelEvent(CommandQueue *parent,
     }
 
     // Check that the device can execute a native kernel
-    DeviceInterface *device;
     cl_device_exec_capabilities caps;
-
-    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(DeviceInterface *),
-                                &device, 0);
+    cl_device_id   d_device = 0;
+    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(cl_device_id), &d_device, 0);
 
     if (*errcode_ret != CL_SUCCESS)
         return;
 
+    auto device = pobj(d_device);
     *errcode_ret = device->info(CL_DEVICE_EXECUTION_CAPABILITIES,
                                 sizeof(cl_device_exec_capabilities), &caps, 0);
 
@@ -746,17 +744,17 @@ KernelEvent::KernelEvent(CommandQueue *parent,
     }
 
     // Check that the kernel was built for parent's device.
-    DeviceInterface *device;
+    cl_device_id d_device = 0;
     Context *k_ctx, *q_ctx;
     size_t max_work_group_size;
     cl_uint max_dims = 0;
 
-    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(DeviceInterface *),
-                                &device, 0);
+    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(cl_device_id), &d_device, 0);
 
     if (*errcode_ret != CL_SUCCESS)
         return;
 
+    auto device = pobj(d_device);
     *errcode_ret = parent->info(CL_QUEUE_CONTEXT, sizeof(Context *), &q_ctx, 0);
     *errcode_ret |= kernel->info(CL_KERNEL_CONTEXT, sizeof(Context *), &k_ctx, 0);
     *errcode_ret |= device->info(CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t),
@@ -1241,13 +1239,13 @@ CopyBufferRectEvent::CopyBufferRectEvent(CommandQueue *parent,
     }
 
     // Check alignment of destination (source already checked by BufferEvent)
-    DeviceInterface *device = 0;
-    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(DeviceInterface *),
-                                &device, 0);
+    cl_device_id d_device = 0;
+    *errcode_ret = parent->info(CL_QUEUE_DEVICE, sizeof(cl_device_id), &d_device, 0);
 
     if (*errcode_ret != CL_SUCCESS)
         return;
 
+    auto device = pobj(d_device);
     if (!isSubBufferAligned(destination, device))
     {
         *errcode_ret = CL_MISALIGNED_SUB_BUFFER_OFFSET;

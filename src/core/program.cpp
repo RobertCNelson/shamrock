@@ -929,7 +929,7 @@ cl_int Program::info(cl_program_info param_name,
     void *value = 0;
     size_t value_length = 0;
     llvm::SmallVector<size_t, 4> binary_sizes;
-    llvm::SmallVector<DeviceInterface *, 4> devices;
+    llvm::SmallVector<cl_device_id, 4> devices;
     std::string names;
 
     union {
@@ -963,11 +963,11 @@ cl_int Program::info(cl_program_info param_name,
 	       {
 		  const DeviceDependent &dep = p_device_dependent[i];
 
-		  devices.push_back(dep.device);
+		  devices.push_back(desc(dep.device));
 	       }
 
 	       value = devices.data();
-	       value_length = devices.size() * sizeof(DeviceInterface *);
+	       value_length = devices.size() * sizeof(cl_device_id);
 	   }
 	   else
 	      return ((Context *)parent())->info(CL_CONTEXT_DEVICES,
