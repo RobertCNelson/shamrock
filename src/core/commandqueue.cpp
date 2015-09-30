@@ -108,7 +108,7 @@ cl_int CommandQueue::info(cl_command_queue_info param_name,
     switch (param_name)
     {
         case CL_QUEUE_CONTEXT:
-            SIMPLE_ASSIGN(cl_context, parent());
+            SIMPLE_ASSIGN(cl_context, desc((Context *)parent()));
             break;
 
         case CL_QUEUE_DEVICE:
@@ -928,12 +928,12 @@ cl_int Event::info(cl_event_info param_name,
         case CL_EVENT_CONTEXT:
             if (parent())
             {
-	         SIMPLE_ASSIGN(cl_context, parent()->parent());
+                SIMPLE_ASSIGN(cl_context, desc((Context *)(parent()->parent())));
             }
             else
             {
                 if (type() == User)
-                    SIMPLE_ASSIGN(cl_context, ((UserEvent *)this)->context())
+                    SIMPLE_ASSIGN(cl_context, desc((Context *)(((UserEvent *)this)->context())))
                 else
                     SIMPLE_ASSIGN(cl_context, 0);
             }

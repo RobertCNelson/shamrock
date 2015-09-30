@@ -36,6 +36,7 @@
 #include "memobject.h"
 #include "kernel.h"
 #include "deviceinterface.h"
+#include "context.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -67,12 +68,12 @@ BufferEvent::BufferEvent(CommandQueue *parent,
     }
 
     // Buffer's context must match the CommandQueue one
-    Context *ctx = 0;
-    *errcode_ret = parent->info(CL_QUEUE_CONTEXT, sizeof(Context *), &ctx, 0);
+    cl_context d_ctx = 0;
+    *errcode_ret = parent->info(CL_QUEUE_CONTEXT, sizeof(cl_context), &d_ctx, 0);
 
     if (*errcode_ret != CL_SUCCESS) return;
 
-    if ((Context *)buffer->parent() != ctx)
+    if ((Context *)buffer->parent() != pobj(d_ctx))
     {
         *errcode_ret = CL_INVALID_CONTEXT;
         return;
@@ -745,7 +746,7 @@ KernelEvent::KernelEvent(CommandQueue *parent,
 
     // Check that the kernel was built for parent's device.
     cl_device_id d_device = 0;
-    Context *k_ctx, *q_ctx;
+    cl_context k_ctx, q_ctx;
     size_t max_work_group_size;
     cl_uint max_dims = 0;
 
@@ -755,8 +756,8 @@ KernelEvent::KernelEvent(CommandQueue *parent,
         return;
 
     auto device = pobj(d_device);
-    *errcode_ret = parent->info(CL_QUEUE_CONTEXT, sizeof(Context *), &q_ctx, 0);
-    *errcode_ret |= kernel->info(CL_KERNEL_CONTEXT, sizeof(Context *), &k_ctx, 0);
+    *errcode_ret = parent->info(CL_QUEUE_CONTEXT, sizeof(cl_context), &q_ctx, 0);
+    *errcode_ret |= kernel->info(CL_KERNEL_CONTEXT, sizeof(cl_context), &k_ctx, 0);
     *errcode_ret |= device->info(CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t),
                                 &max_work_group_size, 0);
     *errcode_ret |= device->info(CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(size_t),

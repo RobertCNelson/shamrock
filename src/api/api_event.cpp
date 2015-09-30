@@ -37,6 +37,8 @@
 #include <core/context.h>
 #include <stdio.h>
 
+using namespace Coal;
+
 // Event Object APIs
 cl_int
 clWaitForEvents(cl_uint             num_events,
@@ -46,7 +48,7 @@ clWaitForEvents(cl_uint             num_events,
         return CL_INVALID_VALUE;
 
     // Check the events in the list to ensure thay have same context
-    cl_context global_ctx = 0;
+    Context * global_ctx = NULL;
 
     for (cl_uint i=0; i<num_events; ++i)
     {
@@ -56,12 +58,12 @@ clWaitForEvents(cl_uint             num_events,
         if (event_list[i]->status() < 0)
             return CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST;
 
-        cl_context evt_ctx;
+        Context * evt_ctx;
         if (event_list[i]->type() == Coal::Event::User) {
-            evt_ctx = (cl_context)((Coal::UserEvent *)event_list[i])->context();
+            evt_ctx = ((Coal::UserEvent *)event_list[i])->context();
         }
         else {
-            evt_ctx = (cl_context)event_list[i]->parent()->parent();
+            evt_ctx = (Context *)(event_list[i]->parent()->parent());
         }
 
 #if 0 // YUAN: no need to wait for queue to be flushed
@@ -70,7 +72,7 @@ clWaitForEvents(cl_uint             num_events,
         evt_queue->flush();
 #endif
 
-        if (global_ctx == 0)
+        if (global_ctx == NULL)
             global_ctx = evt_ctx;
         else if (global_ctx != evt_ctx)
             return CL_INVALID_CONTEXT;
@@ -148,10 +150,11 @@ clReleaseEvent(cl_event event)
 }
 
 cl_event
-clCreateUserEvent(cl_context    context,
+clCreateUserEvent(cl_context    d_context,
                   cl_int *      errcode_ret)
 {
     cl_int dummy_errcode;
+    auto context = pobj(d_context);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -164,9 +167,7 @@ clCreateUserEvent(cl_context    context,
 
     *errcode_ret = CL_SUCCESS;
 
-    Coal::UserEvent *command = new Coal::UserEvent(
-        (Coal::Context *)context, errcode_ret
-    );
+    Coal::UserEvent *command = new Coal::UserEvent(context, errcode_ret);
 
     if (*errcode_ret != CL_SUCCESS)
     {

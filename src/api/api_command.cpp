@@ -38,13 +38,14 @@
 
 // Command Queue APIs
 cl_command_queue
-clCreateCommandQueue(cl_context                     context,
+clCreateCommandQueue(cl_context                     d_context,
                      cl_device_id                   d_device,
                      cl_command_queue_properties    properties,
                      cl_int *                       errcode_ret)
 {
     cl_int default_errcode_ret;
     auto device = pobj(d_device);
+    auto context = pobj(d_context);
 
     // No errcode_ret ?
     if (!errcode_ret)
@@ -64,7 +65,7 @@ clCreateCommandQueue(cl_context                     context,
 
     *errcode_ret = CL_SUCCESS;
     Coal::CommandQueue *queue = new Coal::CommandQueue(
-                                        (Coal::Context *)context,
+                                        context,
                                         device,
                                         properties,
                                         errcode_ret);

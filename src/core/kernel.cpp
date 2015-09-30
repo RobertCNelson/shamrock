@@ -36,6 +36,7 @@
 #include "program.h"
 #include "memobject.h"
 #include "sampler.h"
+#include "context.h"
 #include "deviceinterface.h"
 
 #include <string>
@@ -455,7 +456,7 @@ cl_int Kernel::info(cl_kernel_info param_name,
             break;
 
         case CL_KERNEL_CONTEXT:
-            SIMPLE_ASSIGN(cl_context, parent()->parent());
+            SIMPLE_ASSIGN(cl_context, desc((Context *)(parent()->parent())));
             break;
 
         case CL_KERNEL_PROGRAM:

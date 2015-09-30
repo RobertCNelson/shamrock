@@ -30,20 +30,23 @@
  * \brief Samplers
  */
 
-#include "CL/cl.h"
+#include <CL/cl.h>
 
-#include "core/sampler.h"
-#include "core/context.h"
+#include <core/sampler.h>
+#include <core/context.h>
+
+using namespace Coal;
 
 // Sampler APIs
 cl_sampler
-clCreateSampler(cl_context          context,
+clCreateSampler(cl_context          d_context,
                 cl_bool             normalized_coords,
                 cl_addressing_mode  addressing_mode,
                 cl_filter_mode      filter_mode,
                 cl_int *            errcode_ret)
 {
     cl_int dummy_errcode;
+    auto context = pobj(d_context);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -56,7 +59,7 @@ clCreateSampler(cl_context          context,
 
     *errcode_ret = CL_SUCCESS;
 
-    Coal::Sampler *sampler = new Coal::Sampler((Coal::Context *)context,
+    Coal::Sampler *sampler = new Coal::Sampler(context,
                                                normalized_coords,
                                                addressing_mode,
                                                filter_mode,

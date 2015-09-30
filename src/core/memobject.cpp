@@ -371,7 +371,7 @@ cl_int MemObject::info(cl_mem_info param_name,
             break;
 
         case CL_MEM_CONTEXT:
-            SIMPLE_ASSIGN(cl_context, parent());
+	    SIMPLE_ASSIGN(cl_context, desc((Context *)parent()));
             break;
 
         case CL_MEM_ASSOCIATED_MEMOBJECT:

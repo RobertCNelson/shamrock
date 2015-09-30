@@ -187,7 +187,7 @@ cl_int Sampler::info(cl_sampler_info param_name,
             break;
 
         case CL_SAMPLER_CONTEXT:
-            SIMPLE_ASSIGN(cl_context, parent());
+            SIMPLE_ASSIGN(cl_context, desc((Context *)parent()));
             break;
 
         case CL_SAMPLER_NORMALIZED_COORDS:

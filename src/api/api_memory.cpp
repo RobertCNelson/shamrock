@@ -38,13 +38,14 @@
 
 // Memory Object APIs
 cl_mem
-clCreateBuffer(cl_context   context,
+clCreateBuffer(cl_context   d_context,
                cl_mem_flags flags,
                size_t       size,
                void *       host_ptr,
                cl_int *     errcode_ret)
 {
     cl_int dummy_errcode;
+    auto context = pobj(d_context);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -125,7 +126,7 @@ clCreateSubBuffer(cl_mem                buffer,
 }
 
 cl_mem
-clCreateImage(cl_context              context,
+clCreateImage(cl_context              d_context,
               cl_mem_flags            flags,
               const cl_image_format * image_format,
               const cl_image_desc *   image_desc,
@@ -134,6 +135,7 @@ clCreateImage(cl_context              context,
 {
     cl_int dummy_errcode;
     cl_mem image;
+    auto context = pobj(d_context);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -163,7 +165,7 @@ clCreateImage(cl_context              context,
 
 
 cl_mem
-clCreateImage2D(cl_context              context,
+clCreateImage2D(cl_context              d_context,
                 cl_mem_flags            flags,
                 const cl_image_format * image_format,
                 size_t                  image_width,
@@ -173,6 +175,7 @@ clCreateImage2D(cl_context              context,
                 cl_int *                errcode_ret)
 {
     cl_int dummy_errcode;
+    auto context = pobj(d_context);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -199,7 +202,7 @@ clCreateImage2D(cl_context              context,
 }
 
 cl_mem
-clCreateImage3D(cl_context              context,
+clCreateImage3D(cl_context              d_context,
                 cl_mem_flags            flags,
                 const cl_image_format * image_format,
                 size_t                  image_width,
@@ -211,6 +214,7 @@ clCreateImage3D(cl_context              context,
                 cl_int *                errcode_ret)
 {
     cl_int dummy_errcode;
+    auto context = pobj(d_context);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -379,13 +383,15 @@ static cl_image_format supported_formats[] = {
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 cl_int
-clGetSupportedImageFormats(cl_context           context,
+clGetSupportedImageFormats(cl_context           d_context,
                            cl_mem_flags         flags,
                            cl_mem_object_type   image_type,
                            cl_uint              num_entries,
                            cl_image_format *    image_formats,
                            cl_uint *            num_image_formats)
 {
+    auto context = pobj(d_context);
+
     if (!context->isA(Coal::Object::T_Context))
         return CL_INVALID_CONTEXT;
 

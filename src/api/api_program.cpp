@@ -40,13 +40,14 @@
 
 // Program Object APIs
 cl_program
-clCreateProgramWithSource(cl_context        context,
+clCreateProgramWithSource(cl_context        d_context,
                           cl_uint           count,
                           const char **     strings,
                           const size_t *    lengths,
                           cl_int *          errcode_ret)
 {
     cl_int dummy_errcode;
+    auto context = pobj(d_context);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -78,7 +79,7 @@ clCreateProgramWithSource(cl_context        context,
 }
 
 cl_program
-clCreateProgramWithBinary(cl_context            context,
+clCreateProgramWithBinary(cl_context            d_context,
                           cl_uint               num_devices,
                           const cl_device_id *  device_list,
                           const size_t *        lengths,
@@ -87,6 +88,7 @@ clCreateProgramWithBinary(cl_context            context,
                           cl_int *              errcode_ret)
 {
     cl_int dummy_errcode;
+    auto context = pobj(d_context);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -355,7 +357,7 @@ clCompileProgram(cl_program           program,
 }
 
 cl_program
-clLinkProgram(cl_context           context,
+clLinkProgram(cl_context           d_context,
               cl_uint              num_devices,
               const cl_device_id * device_list,
               const char *         options,
@@ -366,6 +368,7 @@ clLinkProgram(cl_context           context,
               cl_int *             errcode_ret)
 {
     cl_int retcode = CL_SUCCESS;
+    auto context = pobj(d_context);
 
     if (!num_input_programs || ((num_input_programs > 0) && !input_programs))
         retcode = CL_INVALID_VALUE;
