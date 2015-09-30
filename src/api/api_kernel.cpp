@@ -38,11 +38,12 @@
 
 // Kernel Object APIs
 cl_kernel
-clCreateKernel(cl_program      program,
+clCreateKernel(cl_program      d_program,
                const char *    kernel_name,
                cl_int *        errcode_ret)
 {
     cl_int dummy_errcode;
+    auto program = pobj(d_program);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -78,12 +79,13 @@ clCreateKernel(cl_program      program,
 }
 
 cl_int
-clCreateKernelsInProgram(cl_program     program,
+clCreateKernelsInProgram(cl_program     d_program,
                          cl_uint        num_kernels,
                          cl_kernel *    kernels,
                          cl_uint *      num_kernels_ret)
 {
     cl_int rs = CL_SUCCESS;
+    auto program = pobj(d_program);
 
     if (!program->isA(Coal::Object::T_Program))
         return CL_INVALID_PROGRAM;
@@ -159,17 +161,17 @@ clReleaseKernel(cl_kernel   kernel)
 
     if (kernel->dereference())
     {
-		Coal::Program *p =(Coal::Program *) kernel->parent();
+        Coal::Program *p =(Coal::Program *)kernel->parent();
 
         for (size_t i=0; i < p->kernelList.size(); i++) 
         {   
             if (p->kernelList[i]->p_name.compare(kernel->p_name) == 0)
             {
-				p->kernelReleasedList.push_back(p->kernelList[i]);
+                p->kernelReleasedList.push_back(p->kernelList[i]);
                 p->kernelList.erase(p->kernelList.begin() + i);
                 // BUG: TAG
- 		// For some odd reason when we delete this, we're corrupting then inside of some kernel objects
-		//delete kernel;
+                // For some odd reason when we delete this, we're corrupting then inside of some kernel objects
+                //delete kernel;
             }   
         }
     }   

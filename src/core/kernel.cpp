@@ -460,7 +460,7 @@ cl_int Kernel::info(cl_kernel_info param_name,
             break;
 
         case CL_KERNEL_PROGRAM:
-            SIMPLE_ASSIGN(cl_program, parent());
+            SIMPLE_ASSIGN(cl_program, desc((Program *)parent()));
             break;
 
         default:

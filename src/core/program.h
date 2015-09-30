@@ -35,10 +35,18 @@
 #define __PROGRAM_H__
 
 #include "object.h"
+#include "icd.h"
 
 #include <CL/cl.h>
 #include <string>
 #include <vector>
+
+namespace Coal
+{
+  class Program;
+}
+struct _cl_program: public Coal::descriptor<Coal::Program, _cl_program> {};
+
 
 namespace llvm
 {
@@ -65,7 +73,7 @@ class Kernel;
  * It then contains functions to get the list of kernels available in the
  * program, using \c Coal::Kernel objects.
  */
-class Program : public Object
+class Program : public _cl_program, public Object
 {
     public:
         /**
@@ -306,8 +314,5 @@ class Program : public Object
 };
 
 }
-
-struct _cl_program : public Coal::Program
-{};
 
 #endif

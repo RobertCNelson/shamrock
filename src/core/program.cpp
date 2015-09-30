@@ -596,7 +596,7 @@ static int storeInputHeaders(cl_uint num_input_headers,
 
         // Make tmp header file...
         // and copy header file contents there (previously stored in the program object)
-        Coal::Program *prog = (Coal::Program *)input_headers[i];
+        auto prog = pobj(input_headers[i]);
         assert (prog->type() == Coal::Program::Source);
 	std::string fullpath = tmp_headers_path + pathname;
         try
@@ -779,7 +779,7 @@ cl_int Program::link(const char *options,
 	// If no module, initialize with the first input program:
 	if (!dep.linked_module) {
 	    dep.linked_module = CloneModule(
-	      ((Coal::Program *)input_programs[0])->deviceDependent(device_list[i]).linked_module);
+	       (pobj(input_programs[0]))->deviceDependent(device_list[i]).linked_module);
 	    start = 1;
             if (stdlib) num_input_programs++;
 	}
@@ -794,7 +794,7 @@ cl_int Program::link(const char *options,
             }
             else {
                 DeviceDependent &other_dep =
-                     ((Coal::Program *)input_programs[j])->deviceDependent(device_list[i]);
+		  (pobj(input_programs[j]))->deviceDependent(device_list[i]);
                 other = other_dep.linked_module;
             }
 
@@ -899,7 +899,7 @@ cl_int Program::build(const char *options,
 
     if (result == CL_SUCCESS) {
         cl_uint num_input_programs = 1;
-        const cl_program input_programs[] = { (cl_program)this };
+        const cl_program input_programs[] = { desc(this) };
 
         result = link(options, pfn_notify, user_data, num_devices,
                       device_list, num_input_programs, input_programs);

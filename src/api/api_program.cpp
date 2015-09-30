@@ -75,7 +75,7 @@ clCreateProgramWithSource(cl_context        d_context,
         return 0;
     }
 
-    return (cl_program)program;
+    return desc(program);
 }
 
 cl_program
@@ -178,12 +178,13 @@ clCreateProgramWithBinary(cl_context            d_context,
 
     std::free(context_devices);
     std::free(devices);
-    return (cl_program)program;
+    return desc(program);
 }
 
 cl_int
-clRetainProgram(cl_program program)
+clRetainProgram(cl_program d_program)
 {
+    auto program = pobj(d_program);
     if (!program->isA(Coal::Object::T_Program))
         return CL_INVALID_PROGRAM;
 
@@ -193,8 +194,9 @@ clRetainProgram(cl_program program)
 }
 
 cl_int
-clReleaseProgram(cl_program program)
+clReleaseProgram(cl_program d_program)
 {
+    auto program = pobj(d_program);
     if (!program->isA(Coal::Object::T_Program))
         return CL_INVALID_PROGRAM;
 
@@ -258,12 +260,13 @@ validateContext(Coal::Context      * context,
 
 
 static cl_int
-validateBuildArgs(cl_program           program,
+validateBuildArgs(cl_program           d_program,
                   cl_uint              &num_devices,
                   const cl_device_id * &device_list,
                   void (*pfn_notify)(cl_program program, void * user_data),
                   void *               user_data)
 {
+    auto program = pobj(d_program);
     if (!program->isA(Coal::Object::T_Program))
         return CL_INVALID_PROGRAM;
 
@@ -292,7 +295,7 @@ validateBuildArgs(cl_program           program,
 
 
 cl_int
-clBuildProgram(cl_program           program,
+clBuildProgram(cl_program           d_program,
                cl_uint              num_devices,
                const cl_device_id * device_list,
                const char *         options,
@@ -300,8 +303,9 @@ clBuildProgram(cl_program           program,
                void *               user_data)
 {
     cl_int result;
+    auto program = pobj(d_program);
 
-    result = validateBuildArgs(program, num_devices, device_list,
+    result = validateBuildArgs(d_program, num_devices, device_list,
                                pfn_notify, user_data);
 
     if (result == CL_SUCCESS)  {
@@ -314,14 +318,14 @@ clBuildProgram(cl_program           program,
     }
 
     if (pfn_notify)
-        pfn_notify(program, user_data);
+        pfn_notify(d_program, user_data);
 
     return result;
 }
 
 
 cl_int
-clCompileProgram(cl_program           program,
+clCompileProgram(cl_program           d_program,
                  cl_uint              num_devices,
                  const cl_device_id * device_list,
                  const char *         options,
@@ -332,8 +336,9 @@ clCompileProgram(cl_program           program,
                  void *               user_data)
 {
     cl_int result = CL_SUCCESS;
+    auto program = pobj(d_program);
 
-    result = validateBuildArgs(program, num_devices, device_list,
+    result = validateBuildArgs(d_program, num_devices, device_list,
                                pfn_notify,user_data);
 
     if ((result == CL_SUCCESS) &&
@@ -351,7 +356,7 @@ clCompileProgram(cl_program           program,
     }
 
     if (pfn_notify)
-        pfn_notify(program, user_data);
+        pfn_notify(d_program, user_data);
 
     return (result);
 }
@@ -388,13 +393,14 @@ clLinkProgram(cl_context           d_context,
     if (retcode == CL_SUCCESS) {
         // Check that each program is either loaded with a binary, or compiled
         for (int i = 0; i < num_input_programs; i++) {
-            if (!input_programs[i]->isA(Coal::Object::T_Program)) {
+            auto input_prog = pobj(input_programs[i]);
+            if (!input_prog->isA(Coal::Object::T_Program)) {
                 retcode = CL_INVALID_PROGRAM;
                 break;
             }
-            if (!((input_programs[i]->state() == Coal::Program::Loaded &&
-                  input_programs[i]->type() == Coal::Program::Binary) ||
-                  input_programs[i]->state() == Coal::Program::Compiled)) {
+            if (!((input_prog->state() == Coal::Program::Loaded &&
+                  input_prog->type() == Coal::Program::Binary) ||
+                  input_prog->state() == Coal::Program::Compiled)) {
                 retcode =  CL_INVALID_OPERATION;
                 break;
             }
@@ -417,7 +423,7 @@ clLinkProgram(cl_context           d_context,
 	// must trigger the callback whether the build succeeds or not, here we must have a
 	// program object to pass to the pfn_notify() callback.
         if (pfn_notify)
-            pfn_notify((cl_program)program, user_data);
+            pfn_notify(desc(program), user_data);
 
         if (retcode != CL_SUCCESS)
         {
@@ -428,7 +434,7 @@ clLinkProgram(cl_context           d_context,
 
     if (errcode_ret) *errcode_ret = retcode;
 
-    return (cl_program)program;
+    return desc(program);
 }
 
 cl_int
@@ -447,12 +453,13 @@ clUnloadPlatformCompiler(cl_platform_id platform)
 
 
 cl_int
-clGetProgramInfo(cl_program         program,
+clGetProgramInfo(cl_program         d_program,
                  cl_program_info    param_name,
                  size_t             param_value_size,
                  void *             param_value,
                  size_t *           param_value_size_ret)
 {
+    auto program = pobj(d_program);
     if (!program->isA(Coal::Object::T_Program))
         return CL_INVALID_PROGRAM;
 
@@ -461,20 +468,23 @@ clGetProgramInfo(cl_program         program,
 }
 
 cl_int
-clGetProgramBuildInfo(cl_program            program,
-                      cl_device_id          device,
+clGetProgramBuildInfo(cl_program            d_program,
+                      cl_device_id          d_device,
                       cl_program_build_info param_name,
                       size_t                param_value_size,
                       void *                param_value,
                       size_t *              param_value_size_ret)
 {
+    auto program = pobj(d_program);
+    auto device = pobj(d_device);
+
     if (!program->isA(Coal::Object::T_Program))
         return CL_INVALID_PROGRAM;
 
     if (!device)
         return CL_INVALID_DEVICE;
 
-    return program->buildInfo(pobj(device), param_name,
+    return program->buildInfo(device, param_name,
                               param_value_size, param_value,
                               param_value_size_ret);
 }
