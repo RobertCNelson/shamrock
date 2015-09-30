@@ -75,7 +75,7 @@ clCreateKernel(cl_program      d_program,
         return 0;
     }
 
-    return (cl_kernel)kernel;
+    return desc(kernel);
 }
 
 cl_int
@@ -124,7 +124,7 @@ clCreateKernelsInProgram(cl_program     d_program,
     if (!kernels)
     {
         // We don't need the kernels in fact
-   /*     while (ks.size())
+        /* while (ks.size())
         {
             delete ks.back();
             ks.pop_back();
@@ -135,7 +135,7 @@ clCreateKernelsInProgram(cl_program     d_program,
         // Copy the kernels
         for (size_t i=0; i<ks.size(); ++i)
         {
-            kernels[i] = (cl_kernel)ks[i];
+            kernels[i] = desc(ks[i]);
         }
     }
 
@@ -143,8 +143,9 @@ clCreateKernelsInProgram(cl_program     d_program,
 }
 
 cl_int
-clRetainKernel(cl_kernel    kernel)
+clRetainKernel(cl_kernel    d_kernel)
 {
+    auto kernel = pobj(d_kernel);
     if (!kernel->isA(Coal::Object::T_Kernel))
         return CL_INVALID_KERNEL;
 
@@ -154,8 +155,9 @@ clRetainKernel(cl_kernel    kernel)
 }
 
 cl_int
-clReleaseKernel(cl_kernel   kernel)
+clReleaseKernel(cl_kernel   d_kernel)
 {
+    auto kernel = pobj(d_kernel);
     if (!kernel->isA(Coal::Object::T_Kernel))
         return CL_INVALID_KERNEL;
 
@@ -180,11 +182,12 @@ clReleaseKernel(cl_kernel   kernel)
 }
 
 cl_int
-clSetKernelArg(cl_kernel    kernel,
+clSetKernelArg(cl_kernel    d_kernel,
                cl_uint      arg_indx,
                size_t       arg_size,
                const void * arg_value)
 {
+    auto kernel = pobj(d_kernel);
     if (!kernel->isA(Coal::Object::T_Kernel))
         return CL_INVALID_KERNEL;
 
@@ -192,12 +195,14 @@ clSetKernelArg(cl_kernel    kernel,
 }
 
 cl_int
-clGetKernelInfo(cl_kernel       kernel,
+clGetKernelInfo(cl_kernel       d_kernel,
                 cl_kernel_info  param_name,
                 size_t          param_value_size,
                 void *          param_value,
                 size_t *        param_value_size_ret)
 {
+    auto kernel = pobj(d_kernel);
+
     if (!kernel->isA(Coal::Object::T_Kernel))
         return CL_INVALID_KERNEL;
 
@@ -206,13 +211,15 @@ clGetKernelInfo(cl_kernel       kernel,
 }
 
 cl_int
-clGetKernelArgInfo(cl_kernel          kernel,
+clGetKernelArgInfo(cl_kernel          d_kernel,
                    cl_uint            arg_indx,
                    cl_kernel_arg_info param_name,
                    size_t             param_value_size,
                    void *             param_value,
                    size_t *           param_value_size_ret)
 {
+    auto kernel = pobj(d_kernel);
+
     if (!kernel->isA(Coal::Object::T_Kernel))
         return CL_INVALID_KERNEL;
 
@@ -222,17 +229,20 @@ clGetKernelArgInfo(cl_kernel          kernel,
 
 
 cl_int
-clGetKernelWorkGroupInfo(cl_kernel                  kernel,
-                         cl_device_id               device,
+clGetKernelWorkGroupInfo(cl_kernel                  d_kernel,
+                         cl_device_id               d_device,
                          cl_kernel_work_group_info  param_name,
                          size_t                     param_value_size,
                          void *                     param_value,
                          size_t *                   param_value_size_ret)
 {
+    auto device = pobj(d_device);
+    auto kernel = pobj(d_kernel);
+
     if (!kernel->isA(Coal::Object::T_Kernel))
         return CL_INVALID_KERNEL;
 
-    return kernel->workGroupInfo(pobj(device), param_name,
+    return kernel->workGroupInfo(device, param_name,
                                  param_value_size, param_value,
                                  param_value_size_ret);
 }

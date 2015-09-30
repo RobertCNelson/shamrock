@@ -719,7 +719,7 @@ KernelEvent::KernelEvent(CommandQueue *parent,
 : Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_work_dim(work_dim), p_kernel(kernel)
 {
-    clRetainKernel((cl_kernel) p_kernel);
+    clRetainKernel(desc(p_kernel));
     // Also, retain any buffers in case the client releases during execute,
     // as is done in the Khronos test_api release_during_execute test!.
     // Check arguments (buffer alignment, image size, ...)
@@ -958,7 +958,7 @@ KernelEvent::~KernelEvent()
             clReleaseMemObject((cl_mem)buffer);
         }
     }
-    clReleaseKernel((cl_kernel) p_kernel);
+    clReleaseKernel(desc(p_kernel));
 }
 
 cl_uint KernelEvent::work_dim() const

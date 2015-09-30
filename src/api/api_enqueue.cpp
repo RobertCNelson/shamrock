@@ -34,6 +34,7 @@
 
 #include <core/events.h>
 #include <core/memobject.h>
+#include <core/kernel.h>
 
 #include <cstdlib>
 #include <stdio.h>
@@ -679,7 +680,7 @@ clEnqueueUnmapMemObject(cl_command_queue command_queue,
 
 cl_int
 clEnqueueNDRangeKernel(cl_command_queue command_queue,
-                       cl_kernel        kernel,
+                       cl_kernel        d_kernel,
                        cl_uint          work_dim,
                        const size_t *   global_work_offset,
                        const size_t *   global_work_size,
@@ -689,6 +690,7 @@ clEnqueueNDRangeKernel(cl_command_queue command_queue,
                        cl_event *       event)
 {
     cl_int rs = CL_SUCCESS;
+    auto kernel = pobj(d_kernel);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
     {
@@ -697,7 +699,7 @@ clEnqueueNDRangeKernel(cl_command_queue command_queue,
 
     Coal::KernelEvent *command = new Coal::KernelEvent(
         (Coal::CommandQueue *)command_queue,
-        (Coal::Kernel *)kernel,
+        kernel,
         work_dim, global_work_offset, global_work_size, local_work_size,
         num_events_in_wait_list, (const Coal::Event **)event_wait_list, &rs
     );
@@ -713,12 +715,13 @@ clEnqueueNDRangeKernel(cl_command_queue command_queue,
 
 cl_int
 clEnqueueTask(cl_command_queue  command_queue,
-              cl_kernel         kernel,
+              cl_kernel         d_kernel,
               cl_uint           num_events_in_wait_list,
               const cl_event *  event_wait_list,
               cl_event *        event)
 {
     cl_int rs = CL_SUCCESS;
+    auto kernel = pobj(d_kernel);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
     {
@@ -727,7 +730,7 @@ clEnqueueTask(cl_command_queue  command_queue,
 
     Coal::TaskEvent *command = new Coal::TaskEvent(
         (Coal::CommandQueue *)command_queue,
-        (Coal::Kernel *)kernel,
+        kernel,
         num_events_in_wait_list, (const Coal::Event **)event_wait_list, &rs
     );
 
