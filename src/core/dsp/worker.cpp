@@ -417,7 +417,7 @@ bool handle_event_dispatch(DSPDevice *device)
             -----------------------------------------------------------*/
             if (e->buffer()->flags() & CL_MEM_USE_HOST_PTR) break;
 
-            clRetainEvent((cl_event) e);
+            clRetainEvent(desc(e));
             if(! e->buffer()->addMapEvent(e))
                 ERR(1, "MapBuffer: Range conflicts with previous maps");
             if ((e->flags() & CL_MAP_READ) != 0)

@@ -47,9 +47,10 @@
 namespace Coal
 {
   class CommandQueue;
+  class Event;
 }
 struct _cl_command_queue: public Coal::descriptor<Coal::CommandQueue, _cl_command_queue> {};
-
+struct _cl_event : public Coal::descriptor<Coal::Event, _cl_event> {};
 
 namespace Coal
 {
@@ -236,7 +237,7 @@ class CommandQueue : public _cl_command_queue, public Object
  * They only contain static and immutable data that is then used by the devices
  * to actually implement the event.
  */
-class Event : public Object
+class Event : public _cl_event, public Object
 {
     public:
         /**
@@ -323,7 +324,7 @@ class Event : public Object
         Event(CommandQueue *parent,
               Status status,
               cl_uint num_events_in_wait_list,
-              const Event **event_wait_list,
+              const cl_event * event_wait_list,
               cl_int *errcode_ret);
 
         void freeDeviceData();      /*!< \brief Call \c Coal::DeviceInterface::freeEventDeviceData() */
@@ -475,8 +476,5 @@ class Event : public Object
 };
 
 }
-
-struct _cl_event : public Coal::Event
-{};
 
 #endif

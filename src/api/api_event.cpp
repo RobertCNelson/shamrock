@@ -52,22 +52,23 @@ clWaitForEvents(cl_uint             num_events,
 
     for (cl_uint i=0; i<num_events; ++i)
     {
-        if (!event_list[i]->isA(Coal::Object::T_Event))
+        auto event = pobj(event_list[i]);
+        if (!event->isA(Coal::Object::T_Event))
             return CL_INVALID_EVENT;
 
-        if (event_list[i]->status() < 0)
+        if (event->status() < 0)
             return CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST;
 
         Context * evt_ctx;
-        if (event_list[i]->type() == Coal::Event::User) {
-            evt_ctx = ((Coal::UserEvent *)event_list[i])->context();
+        if (event->type() == Coal::Event::User) {
+	    evt_ctx = ((Coal::UserEvent *)event)->context();
         }
         else {
-            evt_ctx = (Context *)(event_list[i]->parent()->parent());
+            evt_ctx = (Context *)(event->parent()->parent());
         }
 
 #if 0 // YUAN: no need to wait for queue to be flushed
-	Coal::CommandQueue * evt_queue = (Coal::CommandQueue *)event_list[i]->parent();
+	Coal::CommandQueue * evt_queue = (Coal::CommandQueue *)event->parent();
         // Flush the queue
         evt_queue->flush();
 #endif
@@ -81,19 +82,22 @@ clWaitForEvents(cl_uint             num_events,
     // Wait for the events
     for (cl_uint i=0; i<num_events; ++i)
     {
-        event_list[i]->waitForStatus(CL_COMPLETE);
+        auto event = pobj(event_list[i]);
+        event->waitForStatus(CL_COMPLETE);
     }
 
     return CL_SUCCESS;
 }
 
 cl_int
-clGetEventInfo(cl_event         event,
+clGetEventInfo(cl_event         d_event,
                cl_event_info    param_name,
                size_t           param_value_size,
                void *           param_value,
                size_t *         param_value_size_ret)
 {
+    auto event = pobj(d_event);
+
     if (!event->isA(Coal::Object::T_Event))
         return CL_INVALID_EVENT;
 
@@ -102,13 +106,15 @@ clGetEventInfo(cl_event         event,
 }
 
 cl_int
-clSetEventCallback(cl_event     event,
+clSetEventCallback(cl_event     d_event,
                    cl_int       command_exec_callback_type,
                    void         (CL_CALLBACK *pfn_event_notify)(cl_event event,
                                                                 cl_int exec_status,
                                                                 void *user_data),
                    void *user_data)
 {
+    auto event = pobj(d_event);
+
     if (!event->isA(Coal::Object::T_Event))
         return CL_INVALID_EVENT;
 
@@ -124,8 +130,10 @@ clSetEventCallback(cl_event     event,
 }
 
 cl_int
-clRetainEvent(cl_event event)
+clRetainEvent(cl_event d_event)
 {
+    auto event = pobj(d_event);
+
     if (!event->isA(Coal::Object::T_Event))
         return CL_INVALID_EVENT;
 
@@ -135,8 +143,10 @@ clRetainEvent(cl_event event)
 }
 
 cl_int
-clReleaseEvent(cl_event event)
+clReleaseEvent(cl_event d_event)
 {
+    auto event = pobj(d_event);
+
     if (!event->isA(Coal::Object::T_Event))
         return CL_INVALID_EVENT;
 
@@ -175,14 +185,14 @@ clCreateUserEvent(cl_context    d_context,
         return 0;
     }
 
-    return (cl_event)command;
+    return desc(command);
 }
 
 cl_int
-clSetUserEventStatus(cl_event   event,
+clSetUserEventStatus(cl_event   d_event,
                      cl_int     execution_status)
 {
-    Coal::Event *command = (Coal::Event *)event;
+    auto command = pobj(d_event);
 
     if (!command->isA(Coal::Object::T_Event) ||
         command->type() != Coal::Event::User)

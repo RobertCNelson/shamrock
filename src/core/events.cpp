@@ -51,7 +51,7 @@ using namespace Coal;
 BufferEvent::BufferEvent(CommandQueue *parent,
                          MemObject *buffer,
                          cl_uint num_events_in_wait_list,
-                         const Event **event_wait_list,
+                         const cl_event *event_wait_list,
                          cl_int *errcode_ret)
 : Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_buffer(buffer)
@@ -141,7 +141,7 @@ ReadWriteBufferEvent::ReadWriteBufferEvent(CommandQueue *parent,
                                            size_t cb,
                                            void *ptr,
                                            cl_uint num_events_in_wait_list,
-                                           const Event **event_wait_list,
+                                           const cl_event *event_wait_list,
                                            cl_int *errcode_ret)
 : BufferEvent(parent, buffer, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_offset(offset), p_cb(cb), p_ptr(ptr)
@@ -183,7 +183,7 @@ ReadBufferEvent::ReadBufferEvent(CommandQueue *parent,
                                  size_t cb,
                                  void *ptr,
                                  cl_uint num_events_in_wait_list,
-                                 const Event **event_wait_list,
+                                 const cl_event *event_wait_list,
                                  cl_int *errcode_ret)
 : ReadWriteBufferEvent(parent, buffer, offset, cb, ptr, num_events_in_wait_list,
                        event_wait_list, errcode_ret)
@@ -200,7 +200,7 @@ WriteBufferEvent::WriteBufferEvent(CommandQueue *parent,
                                    size_t cb,
                                    void *ptr,
                                    cl_uint num_events_in_wait_list,
-                                   const Event **event_wait_list,
+                                   const cl_event *event_wait_list,
                                    cl_int *errcode_ret)
 : ReadWriteBufferEvent(parent, buffer, offset, cb, ptr, num_events_in_wait_list,
                        event_wait_list, errcode_ret)
@@ -217,7 +217,7 @@ MapBufferEvent::MapBufferEvent(CommandQueue *parent,
                                size_t cb,
                                cl_map_flags map_flags,
                                cl_uint num_events_in_wait_list,
-                               const Event **event_wait_list,
+                               const cl_event *event_wait_list,
                                cl_int *errcode_ret)
 : BufferEvent(parent, buffer, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_offset(offset), p_cb(cb), p_map_flags(map_flags)
@@ -286,7 +286,7 @@ MapImageEvent::MapImageEvent(CommandQueue *parent,
                              const size_t origin[3],
                              const size_t region[3],
                              cl_uint num_events_in_wait_list,
-                             const Event **event_wait_list,
+                             const cl_event *event_wait_list,
                              cl_int *errcode_ret)
 : BufferEvent (parent, image, num_events_in_wait_list, event_wait_list, errcode_ret)
 {
@@ -393,7 +393,7 @@ UnmapBufferEvent::UnmapBufferEvent(CommandQueue *parent,
                                    MemObject *buffer,
                                    void *mapped_addr,
                                    cl_uint num_events_in_wait_list,
-                                   const Event **event_wait_list,
+                                   const cl_event *event_wait_list,
                                    cl_int *errcode_ret)
 : BufferEvent(parent, buffer, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_mapping(mapped_addr)
@@ -425,7 +425,7 @@ CopyBufferEvent::CopyBufferEvent(CommandQueue *parent,
                                  size_t dst_offset,
                                  size_t cb,
                                  cl_uint num_events_in_wait_list,
-                                 const Event **event_wait_list,
+                                 const cl_event *event_wait_list,
                                  cl_int *errcode_ret)
 : BufferEvent(parent, source, num_events_in_wait_list, event_wait_list,
               errcode_ret), p_destination(destination), p_src_offset(src_offset),
@@ -523,7 +523,7 @@ FillBufferEvent::FillBufferEvent(CommandQueue *parent,
                                  size_t             offset,
                                  size_t             size,
                                  cl_uint num_events_in_wait_list,
-                                 const Event **event_wait_list,
+                                 const cl_event *event_wait_list,
                                  cl_int *errcode_ret)
 : BufferEvent(parent, buffer, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_pattern(pattern), p_pattern_size(pattern_size), p_offset(offset), p_size(size)
@@ -590,7 +590,7 @@ NativeKernelEvent::NativeKernelEvent(CommandQueue *parent,
                                      const MemObject **mem_list,
                                      const void **args_mem_loc,
                                      cl_uint num_events_in_wait_list,
-                                     const Event **event_wait_list,
+                                     const cl_event *event_wait_list,
                                      cl_int *errcode_ret)
 : Event (parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_user_func((void *)user_func), p_args(0)
@@ -714,7 +714,7 @@ KernelEvent::KernelEvent(CommandQueue *parent,
                          const size_t *global_work_size,
                          const size_t *local_work_size,
                          cl_uint num_events_in_wait_list,
-                         const Event **event_wait_list,
+                         const cl_event *event_wait_list,
                          cl_int *errcode_ret)
 : Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_work_dim(work_dim), p_kernel(kernel)
@@ -1001,7 +1001,7 @@ static size_t one = 1;
 TaskEvent::TaskEvent(CommandQueue *parent,
                      Kernel *kernel,
                      cl_uint num_events_in_wait_list,
-                     const Event **event_wait_list,
+                     const cl_event *event_wait_list,
                      cl_int *errcode_ret)
 : KernelEvent(parent, kernel, 1, 0, &one, &one, num_events_in_wait_list,
               event_wait_list, errcode_ret)
@@ -1046,7 +1046,7 @@ ReadWriteCopyBufferRectEvent::ReadWriteCopyBufferRectEvent(CommandQueue *parent,
                                                            size_t dst_slice_pitch,
                                                            unsigned int bytes_per_element,
                                                            cl_uint num_events_in_wait_list,
-                                                           const Event **event_wait_list,
+                                                           const cl_event *event_wait_list,
                                                            cl_int *errcode_ret)
 : BufferEvent (parent, source, num_events_in_wait_list, event_wait_list,
                errcode_ret)
@@ -1186,7 +1186,7 @@ CopyBufferRectEvent::CopyBufferRectEvent(CommandQueue *parent,
                                          size_t dst_slice_pitch,
                                          unsigned int bytes_per_element,
                                          cl_uint num_events_in_wait_list,
-                                         const Event **event_wait_list,
+                                         const cl_event *event_wait_list,
                                          cl_int *errcode_ret)
 : ReadWriteCopyBufferRectEvent(parent, source, src_origin, dst_origin, region,
                                src_row_pitch, src_slice_pitch, dst_row_pitch,
@@ -1283,7 +1283,7 @@ ReadWriteBufferRectEvent::ReadWriteBufferRectEvent(CommandQueue *parent,
                                                    void *ptr,
                                                    unsigned int bytes_per_element,
                                                    cl_uint num_events_in_wait_list,
-                                                   const Event **event_wait_list,
+                                                   const cl_event *event_wait_list,
                                                    cl_int *errcode_ret)
 : ReadWriteCopyBufferRectEvent(parent, buffer, buffer_origin, host_origin, region,
                                buffer_row_pitch, buffer_slice_pitch,
@@ -1325,7 +1325,7 @@ ReadBufferRectEvent::ReadBufferRectEvent (CommandQueue *parent,
                                           size_t host_slice_pitch,
                                           void *ptr,
                                           cl_uint num_events_in_wait_list,
-                                          const Event **event_wait_list,
+                                          const cl_event *event_wait_list,
                                           cl_int *errcode_ret)
 : ReadWriteBufferRectEvent(parent, buffer, buffer_origin, host_origin, region,
                            buffer_row_pitch, buffer_slice_pitch, host_row_pitch,
@@ -1350,7 +1350,7 @@ WriteBufferRectEvent::WriteBufferRectEvent (CommandQueue *parent,
                                             size_t host_slice_pitch,
                                             void *ptr,
                                             cl_uint num_events_in_wait_list,
-                                            const Event **event_wait_list,
+                                            const cl_event *event_wait_list,
                                             cl_int *errcode_ret)
 : ReadWriteBufferRectEvent (parent, buffer, buffer_origin, host_origin, region,
                             buffer_row_pitch, buffer_slice_pitch, host_row_pitch,
@@ -1372,7 +1372,7 @@ ReadWriteImageEvent::ReadWriteImageEvent (CommandQueue *parent,
                                           size_t slice_pitch,
                                           void *ptr,
                                           cl_uint num_events_in_wait_list,
-                                          const Event **event_wait_list,
+                                          const cl_event *event_wait_list,
                                           cl_int *errcode_ret)
 : ReadWriteBufferRectEvent(parent, image, origin, 0, region, image->row_pitch(),
                            image->slice_pitch(), row_pitch, slice_pitch, ptr,
@@ -1397,7 +1397,7 @@ ReadImageEvent::ReadImageEvent(CommandQueue *parent,
                                size_t slice_pitch,
                                void *ptr,
                                cl_uint num_events_in_wait_list,
-                               const Event **event_wait_list,
+                               const cl_event *event_wait_list,
                                cl_int *errcode_ret)
 : ReadWriteImageEvent(parent, image, origin, region, row_pitch, slice_pitch, ptr,
                       num_events_in_wait_list, event_wait_list, errcode_ret)
@@ -1416,7 +1416,7 @@ WriteImageEvent::WriteImageEvent(CommandQueue *parent,
                                  size_t slice_pitch,
                                  void *ptr,
                                  cl_uint num_events_in_wait_list,
-                                 const Event **event_wait_list,
+                                 const cl_event *event_wait_list,
                                  cl_int *errcode_ret)
 : ReadWriteImageEvent (parent, image, origin, region, row_pitch, slice_pitch, ptr,
                        num_events_in_wait_list, event_wait_list, errcode_ret)
@@ -1440,7 +1440,7 @@ CopyImageEvent::CopyImageEvent(CommandQueue *parent,
                                const size_t dst_origin[3],
                                const size_t region[3],
                                cl_uint num_events_in_wait_list,
-                               const Event **event_wait_list,
+                               const cl_event *event_wait_list,
                                cl_int *errcode_ret)
 : CopyBufferRectEvent (parent, source, destination, src_origin, dst_origin,
                        region, source->row_pitch(), source->slice_pitch(),
@@ -1485,7 +1485,7 @@ CopyImageToBufferEvent::CopyImageToBufferEvent(CommandQueue *parent,
                                                const size_t region[3],
                                                size_t dst_offset,
                                                cl_uint num_events_in_wait_list,
-                                               const Event **event_wait_list,
+                                               const cl_event *event_wait_list,
                                                cl_int *errcode_ret)
 : CopyBufferRectEvent(parent, source, destination, src_origin, 0, region,
                       source->row_pitch(), source->slice_pitch(), 0, 0,
@@ -1530,7 +1530,7 @@ CopyBufferToImageEvent::CopyBufferToImageEvent(CommandQueue *parent,
                                                const size_t dst_origin[3],
                                                const size_t region[3],
                                                cl_uint num_events_in_wait_list,
-                                               const Event **event_wait_list,
+                                               const cl_event *event_wait_list,
                                                cl_int *errcode_ret)
 : CopyBufferRectEvent(parent, source, destination, 0, dst_origin, region, 0, 0,
                       destination->row_pitch(), destination->slice_pitch(),
@@ -1574,7 +1574,7 @@ Event::Type CopyBufferToImageEvent::type() const
 
 BarrierEvent::BarrierEvent(CommandQueue *parent,
                            cl_uint num_events_in_wait_list,
-                           const Event **event_wait_list,
+                           const cl_event *event_wait_list,
 			   cl_int *errcode_ret)
 : Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret)
 {}
@@ -1590,7 +1590,7 @@ Event::Type BarrierEvent::type() const
 
 WaitForEventsEvent::WaitForEventsEvent(CommandQueue *parent,
                                        cl_uint num_events_in_wait_list,
-                                       const Event **event_wait_list,
+                                       const cl_event *event_wait_list,
                                        cl_int *errcode_ret)
 : Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret)
 {}
@@ -1605,7 +1605,7 @@ Event::Type WaitForEventsEvent::type() const
  */
 MarkerEvent::MarkerEvent(CommandQueue *parent,
                          cl_uint num_events_in_wait_list,
-                         const Event **event_wait_list,
+                         const cl_event *event_wait_list,
                          cl_int *errcode_ret)
 : WaitForEventsEvent(parent, num_events_in_wait_list, event_wait_list, errcode_ret)
 {}
@@ -1622,7 +1622,7 @@ MigrateMemObjectsEvent::MigrateMemObjectsEvent(CommandQueue *parent,
                                  const Coal::MemObject **mem_objects,
                                  cl_mem_migration_flags flags,
                                  cl_uint num_events_in_wait_list,
-                                 const Event **event_wait_list,
+                                 const cl_event *event_wait_list,
                                  cl_int *errcode_ret)
 : Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_num_mem_objects(num_mem_objects), p_mem_objects(mem_objects), p_flags(flags)
