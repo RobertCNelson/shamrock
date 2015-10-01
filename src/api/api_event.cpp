@@ -67,7 +67,7 @@ clWaitForEvents(cl_uint             num_events,
         }
 
 #if 0 // YUAN: no need to wait for queue to be flushed
-        cl_command_queue evt_queue = (cl_command_queue)event_list[i]->parent();
+	Coal::CommandQueue * evt_queue = (Coal::CommandQueue *)event_list[i]->parent();
         // Flush the queue
         evt_queue->flush();
 #endif

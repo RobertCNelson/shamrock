@@ -77,12 +77,14 @@ clCreateCommandQueue(cl_context                     d_context,
         return 0;
     }
 
-    return (_cl_command_queue *)queue;
+    return desc(queue);
 }
 
 cl_int
-clRetainCommandQueue(cl_command_queue command_queue)
+clRetainCommandQueue(cl_command_queue d_command_queue)
 {
+    auto command_queue = pobj(d_command_queue);
+
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
@@ -92,8 +94,10 @@ clRetainCommandQueue(cl_command_queue command_queue)
 }
 
 cl_int
-clReleaseCommandQueue(cl_command_queue command_queue)
+clReleaseCommandQueue(cl_command_queue d_command_queue)
 {
+    auto command_queue = pobj(d_command_queue);
+
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
@@ -106,12 +110,14 @@ clReleaseCommandQueue(cl_command_queue command_queue)
 }
 
 cl_int
-clGetCommandQueueInfo(cl_command_queue      command_queue,
+clGetCommandQueueInfo(cl_command_queue      d_command_queue,
                       cl_command_queue_info param_name,
                       size_t                param_value_size,
                       void *                param_value,
                       size_t *              param_value_size_ret)
 {
+    auto command_queue = pobj(d_command_queue);
+
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
@@ -120,11 +126,13 @@ clGetCommandQueueInfo(cl_command_queue      command_queue,
 }
 
 cl_int
-clSetCommandQueueProperty(cl_command_queue              command_queue,
+clSetCommandQueueProperty(cl_command_queue              d_command_queue,
                           cl_command_queue_properties   properties,
                           cl_bool                       enable,
                           cl_command_queue_properties * old_properties)
 {
+    auto command_queue = pobj(d_command_queue);
+
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 

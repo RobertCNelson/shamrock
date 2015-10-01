@@ -631,8 +631,10 @@ void Event::freeDeviceData()
 {
     if (parent() && p_device_data)
     {
-        DeviceInterface *device = 0;
-        ((CommandQueue *)parent())->info(CL_QUEUE_DEVICE, sizeof(DeviceInterface *), &device, 0);
+        DeviceInterface *device = NULL;
+        cl_device_id d_device = 0;
+        ((CommandQueue *)parent())->info(CL_QUEUE_DEVICE, sizeof(cl_device_id), &d_device, 0);
+        device = pobj(d_device);
 
         device->freeEventDeviceData(this);
     }
@@ -704,7 +706,7 @@ void Event::setStatus(Status status)
     if (type() == Event::User || (parent() && status == CL_COMPLETE))
     {
         CommandQueue *cq = (CommandQueue *) parent();
-        if (cq != NULL)  clRetainCommandQueue((cl_command_queue) cq);
+        if (cq != NULL)  clRetainCommandQueue(desc(cq));
         bool already_pushed = false;
 
         int num_dependent_events = setStatusHelper(status);  
@@ -739,7 +741,7 @@ void Event::setStatus(Status status)
         if (cq != NULL)
         {
             if (!already_pushed)  cq->pushEventsOnDevice(NULL, true);
-            clReleaseCommandQueue((cl_command_queue) cq);
+            clReleaseCommandQueue(desc(cq));
         }
     }
     else
@@ -922,7 +924,7 @@ cl_int Event::info(cl_event_info param_name,
     switch (param_name)
     {
         case CL_EVENT_COMMAND_QUEUE:
-            SIMPLE_ASSIGN(cl_command_queue, parent());
+            SIMPLE_ASSIGN(cl_command_queue, desc((CommandQueue *)parent()));
             break;
 
         case CL_EVENT_CONTEXT:

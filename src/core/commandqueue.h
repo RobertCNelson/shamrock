@@ -35,6 +35,7 @@
 #define __COMMANDQUEUE_H__
 
 #include "object.h"
+#include "icd.h"
 
 #include <CL/cl.h>
 #include <pthread.h>
@@ -42,6 +43,13 @@
 #include <map>
 #include <list>
 #include <vector>
+
+namespace Coal
+{
+  class CommandQueue;
+}
+struct _cl_command_queue: public Coal::descriptor<Coal::CommandQueue, _cl_command_queue> {};
+
 
 namespace Coal
 {
@@ -57,7 +65,7 @@ class Event;
  *
  * More details are given on the \ref events page.
  */
-class CommandQueue : public Object
+class CommandQueue : public _cl_command_queue, public Object
 {
     public:
         CommandQueue(Context *ctx,
@@ -467,9 +475,6 @@ class Event : public Object
 };
 
 }
-
-struct _cl_command_queue : public Coal::CommandQueue
-{};
 
 struct _cl_event : public Coal::Event
 {};
