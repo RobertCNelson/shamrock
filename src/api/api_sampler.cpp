@@ -71,12 +71,14 @@ clCreateSampler(cl_context          d_context,
         return 0;
     }
 
-    return (cl_sampler)sampler;
+    return desc(sampler);
 }
 
 cl_int
-clRetainSampler(cl_sampler sampler)
+clRetainSampler(cl_sampler d_sampler)
 {
+    auto sampler = pobj(d_sampler);
+
     if (!sampler->isA(Coal::Object::T_Sampler))
         return CL_INVALID_SAMPLER;
 
@@ -86,8 +88,10 @@ clRetainSampler(cl_sampler sampler)
 }
 
 cl_int
-clReleaseSampler(cl_sampler sampler)
+clReleaseSampler(cl_sampler d_sampler)
 {
+    auto sampler = pobj(d_sampler);
+
     if (!sampler->isA(Coal::Object::T_Sampler))
         return CL_INVALID_SAMPLER;
 
@@ -98,12 +102,14 @@ clReleaseSampler(cl_sampler sampler)
 }
 
 cl_int
-clGetSamplerInfo(cl_sampler         sampler,
+clGetSamplerInfo(cl_sampler         d_sampler,
                  cl_sampler_info    param_name,
                  size_t             param_value_size,
                  void *             param_value,
                  size_t *           param_value_size_ret)
 {
+    auto sampler = pobj(d_sampler);
+
     if (!sampler->isA(Coal::Object::T_Sampler))
         return CL_INVALID_SAMPLER;
 
