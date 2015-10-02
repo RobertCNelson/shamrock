@@ -317,6 +317,11 @@ llvm::Function *Kernel::function(DeviceInterface *device) const
 
 /******************************************************************************
 * cl_int Kernel::setArg
+*
+* Note: the argument void *value can either be a pointer to raw data, or a
+* derived type of MemObject, upcast to an ICD descriptor (see icd.h).
+* In this case, we must be careful to distinguish between the two and do the
+* downcast to a clover object if valule is a pointer to an ICD object.
 ******************************************************************************/
 cl_int Kernel::setArg(cl_uint index, size_t size, const void *value)
 {
@@ -345,18 +350,21 @@ cl_int Kernel::setArg(cl_uint index, size_t size, const void *value)
     /*-------------------------------------------------------------------------
     * Special case for samplers (pointers in C++, uint32 in OpenCL).
     *------------------------------------------------------------------------*/
-    if (size == sizeof(cl_sampler) && arg_size == 4 &&
-        (*(Object **)value)->isA(T_Sampler))
+    if (arg->kind() == Arg::Sampler && size == sizeof(cl_sampler) && arg_size == 4)
     {
-        unsigned int bitfield = (*(Sampler **)value)->bitfield();
+        // Test if this is a sampler object:
+        MemObject * val = pobj(*(cl_mem *)value);
+        if (((Object *)val)->isA(T_Sampler))
+        {
+	    unsigned int bitfield = ((Sampler *)val)->bitfield();
 
-        arg->refineKind(Arg::Sampler);
-        arg->alloc();
-        arg->loadData(&bitfield, size);
+            arg->refineKind(Arg::Sampler);
+            arg->alloc();
+            arg->loadData(&bitfield, size);
 
-        return CL_SUCCESS;
+            return CL_SUCCESS;
+        }
     }
-
     // LLVM IR redefines function parameter types to fit the smallest integer type width for the ABI
     // eg: <2xi8> (2 bytes) may actually be pushed as an i32 (4 bytes!), but this knowledge is
     // not known to shamrock.  But, we do know the parameter type alignment in addFunction().
@@ -364,23 +372,29 @@ cl_int Kernel::setArg(cl_uint index, size_t size, const void *value)
     if ((size != arg_size) && (size > arg->targetAlignment())) return CL_INVALID_ARG_SIZE;
 
     /*-------------------------------------------------------------------------
-    * Check for null values
+    * Downcast 'void *value' from a potential &cl_mem argument to a MemObject
+    * if arg type is one of Arg::Buffer, Arg::Image2D, or Arg::Image3D.
+    * Also, check for null values.
     *------------------------------------------------------------------------*/
-    cl_mem null_mem = 0;
+    MemObject *mem_value = NULL;
 
-    if (!value)
+    switch (arg->kind())
     {
-        switch (arg->kind())
-        {
-            /*-------------------------------------------------------------
-            * Special case buffers : value can be 0 (or point to 0)
-            *------------------------------------------------------------*/
-            case Arg::Buffer:
-            case Arg::Image2D:
-            case Arg::Image3D: value = &null_mem;
-            default:           return CL_INVALID_ARG_VALUE;
-        }
+        /*-------------------------------------------------------------
+        * Special case buffers : value can be 0 (or point to 0)
+        *------------------------------------------------------------*/
+        case Arg::Buffer:
+        case Arg::Image2D:
+        case Arg::Image3D:
+            if (value) {
+                mem_value = pobj(*(cl_mem *)value);
+            }
+            value = &mem_value;
+            break;
+        default:
+            if (!value) return CL_INVALID_ARG_VALUE;
     }
+
 
     /*-------------------------------------------------------------------------
     * Copy just the data actually passed.  Expect LLVM to do the signext/zeroext.

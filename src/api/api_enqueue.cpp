@@ -112,7 +112,7 @@ static inline cl_int queueEvent(Coal::CommandQueue *queue,
 // Enqueued Commands APIs
 cl_int
 clEnqueueReadBuffer(cl_command_queue    d_command_queue,
-                    cl_mem              buffer,
+                    cl_mem              d_buffer,
                     cl_bool             blocking_read,
                     size_t              offset,
                     size_t              cb,
@@ -123,13 +123,14 @@ clEnqueueReadBuffer(cl_command_queue    d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto buffer = pobj(d_buffer);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::ReadBufferEvent *command = new Coal::ReadBufferEvent(
         command_queue,
-        (Coal::MemObject *)buffer,
+        buffer,
         offset, cb, ptr,
         num_events_in_wait_list, event_wait_list, &rs
     );
@@ -145,7 +146,7 @@ clEnqueueReadBuffer(cl_command_queue    d_command_queue,
 
 cl_int
 clEnqueueWriteBuffer(cl_command_queue   d_command_queue,
-                     cl_mem             buffer,
+                     cl_mem             d_buffer,
                      cl_bool            blocking_write,
                      size_t             offset,
                      size_t             cb,
@@ -156,13 +157,14 @@ clEnqueueWriteBuffer(cl_command_queue   d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto buffer = pobj(d_buffer);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::WriteBufferEvent *command = new Coal::WriteBufferEvent(
         command_queue,
-        (Coal::MemObject *)buffer,
+        buffer,
         offset, cb, (void *)ptr,
         num_events_in_wait_list, event_wait_list, &rs
     );
@@ -178,7 +180,7 @@ clEnqueueWriteBuffer(cl_command_queue   d_command_queue,
 
 cl_int
 clEnqueueReadBufferRect(cl_command_queue    d_command_queue,
-                        cl_mem              buffer,
+                        cl_mem              d_buffer,
                         cl_bool             blocking_read,
                         const size_t *      buffer_origin,
                         const size_t *      host_origin,
@@ -194,13 +196,14 @@ clEnqueueReadBufferRect(cl_command_queue    d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto buffer = pobj(d_buffer);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::ReadBufferRectEvent *command = new Coal::ReadBufferRectEvent(
         command_queue,
-        (Coal::MemObject *)buffer,
+        buffer,
         buffer_origin, host_origin, region, buffer_row_pitch, buffer_slice_pitch,
         host_row_pitch, host_slice_pitch, ptr,
         num_events_in_wait_list, event_wait_list, &rs
@@ -217,7 +220,7 @@ clEnqueueReadBufferRect(cl_command_queue    d_command_queue,
 
 cl_int
 clEnqueueWriteBufferRect(cl_command_queue   d_command_queue,
-                        cl_mem              buffer,
+                        cl_mem              d_buffer,
                         cl_bool             blocking_write,
                         const size_t *      buffer_origin,
                         const size_t *      host_origin,
@@ -233,13 +236,14 @@ clEnqueueWriteBufferRect(cl_command_queue   d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto buffer = pobj(d_buffer);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::WriteBufferRectEvent *command = new Coal::WriteBufferRectEvent(
         command_queue,
-        (Coal::MemObject *)buffer,
+        buffer,
         buffer_origin, host_origin, region, buffer_row_pitch, buffer_slice_pitch,
         host_row_pitch, host_slice_pitch, (void *)ptr,
         num_events_in_wait_list, event_wait_list, &rs
@@ -256,8 +260,8 @@ clEnqueueWriteBufferRect(cl_command_queue   d_command_queue,
 
 cl_int
 clEnqueueCopyBufferRect(cl_command_queue    d_command_queue,
-                        cl_mem              src_buffer,
-                        cl_mem              dst_buffer,
+                        cl_mem              d_src_buffer,
+                        cl_mem              d_dst_buffer,
                         const size_t *      src_origin,
                         const size_t *      dst_origin,
                         const size_t *      region,
@@ -271,14 +275,16 @@ clEnqueueCopyBufferRect(cl_command_queue    d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto src_buffer = pobj(d_src_buffer);
+    auto dst_buffer = pobj(d_dst_buffer);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::CopyBufferRectEvent *command = new Coal::CopyBufferRectEvent(
         command_queue,
-        (Coal::MemObject *)src_buffer,
-        (Coal::MemObject *)dst_buffer,
+        src_buffer,
+        dst_buffer,
         src_origin, dst_origin, region, src_row_pitch, src_slice_pitch,
         dst_row_pitch, dst_slice_pitch, 1,
         num_events_in_wait_list, event_wait_list, &rs
@@ -295,8 +301,8 @@ clEnqueueCopyBufferRect(cl_command_queue    d_command_queue,
 
 cl_int
 clEnqueueCopyBuffer(cl_command_queue    d_command_queue,
-                    cl_mem              src_buffer,
-                    cl_mem              dst_buffer,
+                    cl_mem              d_src_buffer,
+                    cl_mem              d_dst_buffer,
                     size_t              src_offset,
                     size_t              dst_offset,
                     size_t              cb,
@@ -306,14 +312,16 @@ clEnqueueCopyBuffer(cl_command_queue    d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto src_buffer = pobj(d_src_buffer);
+    auto dst_buffer = pobj(d_dst_buffer);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::CopyBufferEvent *command = new Coal::CopyBufferEvent(
         command_queue,
-        (Coal::MemObject *)src_buffer,
-        (Coal::MemObject *)dst_buffer,
+        src_buffer,
+        dst_buffer,
         src_offset, dst_offset, cb,
         num_events_in_wait_list, event_wait_list, &rs
     );
@@ -329,7 +337,7 @@ clEnqueueCopyBuffer(cl_command_queue    d_command_queue,
 
 cl_int
 clEnqueueFillBuffer(cl_command_queue   d_command_queue,
-                    cl_mem             buffer,
+                    cl_mem             d_buffer,
                     const void *       pattern,
                     size_t             pattern_size,
                     size_t             offset,
@@ -340,13 +348,14 @@ clEnqueueFillBuffer(cl_command_queue   d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto buffer = pobj(d_buffer);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::FillBufferEvent *command = new Coal::FillBufferEvent(
         command_queue,
-        (Coal::MemObject *)buffer,
+        buffer,
         pattern, pattern_size, offset, size,
         num_events_in_wait_list, event_wait_list, &rs);
 
@@ -361,7 +370,7 @@ clEnqueueFillBuffer(cl_command_queue   d_command_queue,
 
 cl_int
 clEnqueueReadImage(cl_command_queue     d_command_queue,
-                   cl_mem               image,
+                   cl_mem               d_image,
                    cl_bool              blocking_read,
                    const size_t *       origin,
                    const size_t *       region,
@@ -374,6 +383,7 @@ clEnqueueReadImage(cl_command_queue     d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto image = pobj(d_image);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
@@ -400,7 +410,7 @@ clEnqueueReadImage(cl_command_queue     d_command_queue,
 
 cl_int
 clEnqueueWriteImage(cl_command_queue    d_command_queue,
-                    cl_mem              image,
+                    cl_mem              d_image,
                     cl_bool             blocking_write,
                     const size_t *      origin,
                     const size_t *      region,
@@ -413,6 +423,7 @@ clEnqueueWriteImage(cl_command_queue    d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto image = pobj(d_image);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
@@ -435,8 +446,8 @@ clEnqueueWriteImage(cl_command_queue    d_command_queue,
 
 cl_int
 clEnqueueCopyImage(cl_command_queue     d_command_queue,
-                   cl_mem               src_image,
-                   cl_mem               dst_image,
+                   cl_mem               d_src_image,
+                   cl_mem               d_dst_image,
                    const size_t *       src_origin,
                    const size_t *       dst_origin,
                    const size_t *       region,
@@ -446,6 +457,8 @@ clEnqueueCopyImage(cl_command_queue     d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto src_image = pobj(d_src_image);
+    auto dst_image = pobj(d_dst_image);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
@@ -468,8 +481,8 @@ clEnqueueCopyImage(cl_command_queue     d_command_queue,
 
 cl_int
 clEnqueueCopyImageToBuffer(cl_command_queue d_command_queue,
-                           cl_mem           src_image,
-                           cl_mem           dst_buffer,
+                           cl_mem           d_src_image,
+                           cl_mem           d_dst_buffer,
                            const size_t *   src_origin,
                            const size_t *   region,
                            size_t           dst_offset,
@@ -479,13 +492,15 @@ clEnqueueCopyImageToBuffer(cl_command_queue d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto src_image = pobj(d_src_image);
+    auto dst_buffer = pobj(d_dst_buffer);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::CopyImageToBufferEvent *command = new Coal::CopyImageToBufferEvent(
         command_queue,
-        (Coal::Image2D *)src_image, (Coal::MemObject *)dst_buffer,
+        (Coal::Image2D *)src_image, dst_buffer,
         src_origin, region, dst_offset,
         num_events_in_wait_list, event_wait_list, &rs
     );
@@ -501,8 +516,8 @@ clEnqueueCopyImageToBuffer(cl_command_queue d_command_queue,
 
 cl_int
 clEnqueueCopyBufferToImage(cl_command_queue d_command_queue,
-                           cl_mem           src_buffer,
-                           cl_mem           dst_image,
+                           cl_mem           d_src_buffer,
+                           cl_mem           d_dst_image,
                            size_t           src_offset,
                            const size_t *   dst_origin,
                            const size_t *   region,
@@ -512,13 +527,15 @@ clEnqueueCopyBufferToImage(cl_command_queue d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto src_buffer = pobj(d_src_buffer);
+    auto dst_image = pobj(d_dst_image);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
         return CL_INVALID_COMMAND_QUEUE;
 
     Coal::CopyBufferToImageEvent *command = new Coal::CopyBufferToImageEvent(
         command_queue,
-        (Coal::MemObject *)src_buffer, (Coal::Image2D *)dst_image,
+        src_buffer, (Coal::Image2D *)dst_image,
         src_offset, dst_origin, region,
         num_events_in_wait_list, event_wait_list, &rs
     );
@@ -534,7 +551,7 @@ clEnqueueCopyBufferToImage(cl_command_queue d_command_queue,
 
 void *
 clEnqueueMapBuffer(cl_command_queue d_command_queue,
-                   cl_mem           buffer,
+                   cl_mem           d_buffer,
                    cl_bool          blocking_map,
                    cl_map_flags     map_flags,
                    size_t           offset,
@@ -546,6 +563,7 @@ clEnqueueMapBuffer(cl_command_queue d_command_queue,
 {
     cl_int dummy_errcode;
     auto command_queue = pobj(d_command_queue);
+    auto buffer = pobj(d_buffer);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -560,7 +578,7 @@ clEnqueueMapBuffer(cl_command_queue d_command_queue,
 
     Coal::MapBufferEvent *command = new Coal::MapBufferEvent(
         command_queue,
-        (Coal::MemObject *)buffer,
+        buffer,
         offset, cb, map_flags,
         num_events_in_wait_list, event_wait_list, errcode_ret
     );
@@ -596,7 +614,7 @@ clEnqueueMapBuffer(cl_command_queue d_command_queue,
 
 void *
 clEnqueueMapImage(cl_command_queue  d_command_queue,
-                  cl_mem            image,
+                  cl_mem            d_image,
                   cl_bool           blocking_map,
                   cl_map_flags      map_flags,
                   const size_t *    origin,
@@ -610,6 +628,7 @@ clEnqueueMapImage(cl_command_queue  d_command_queue,
 {
     cl_int rs;
     auto command_queue = pobj(d_command_queue);
+    auto image = pobj(d_image);
 
     if (!errcode_ret)
         errcode_ret = &rs;
@@ -668,7 +687,7 @@ clEnqueueMapImage(cl_command_queue  d_command_queue,
 
 cl_int
 clEnqueueUnmapMemObject(cl_command_queue d_command_queue,
-                        cl_mem           memobj,
+                        cl_mem           d_memobj,
                         void *           mapped_ptr,
                         cl_uint          num_events_in_wait_list,
                         const cl_event *  event_wait_list,
@@ -676,6 +695,7 @@ clEnqueueUnmapMemObject(cl_command_queue d_command_queue,
 {
     cl_int rs = CL_SUCCESS;
     auto command_queue = pobj(d_command_queue);
+    auto memobj = pobj(d_memobj);
 
     if (!command_queue->isA(Coal::Object::T_CommandQueue))
     {
@@ -684,7 +704,7 @@ clEnqueueUnmapMemObject(cl_command_queue d_command_queue,
 
     Coal::UnmapBufferEvent *command = new Coal::UnmapBufferEvent(
         command_queue,
-        (Coal::MemObject *)memobj,
+        memobj,
         mapped_ptr,
         num_events_in_wait_list, event_wait_list, &rs
     );
@@ -786,7 +806,7 @@ clEnqueueNativeKernel(cl_command_queue  d_command_queue,
     Coal::NativeKernelEvent *command = new Coal::NativeKernelEvent(
         command_queue,
         user_func, args, cb_args, num_mem_objects,
-        (const Coal::MemObject **)mem_list, args_mem_loc,
+        mem_list, args_mem_loc,
         num_events_in_wait_list, event_wait_list, &rs
     );
 
@@ -949,7 +969,7 @@ clEnqueueMigrateMemObjects(cl_command_queue       d_command_queue,
 
     Coal::MigrateMemObjectsEvent *command = new Coal::MigrateMemObjectsEvent(
         command_queue,
-        num_mem_objects, (const Coal::MemObject **)mem_objects, flags,
+        num_mem_objects, mem_objects, flags,
         num_events_in_wait_list, event_wait_list, &rs);
 
     if (rs != CL_SUCCESS)

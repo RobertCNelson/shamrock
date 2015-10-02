@@ -248,11 +248,11 @@ void *worker(void *data)
 
                 break;
             }
-	    case Event::MigrateMemObjects:
-	    {
+            case Event::MigrateMemObjects:
+            {
                 MigrateMemObjectsEvent *e = (MigrateMemObjectsEvent *)event;
-		int num_mem_objects = e->num_mem_objects();
-		Coal::MemObject ** mem_objects = (Coal::MemObject **)e->mem_objects();
+                int num_mem_objects = e->num_mem_objects();
+                const cl_mem * mem_objects = e->mem_objects();
                 cl_mem_migration_flags flags = e->flags();
 
                 std::cout << "Event::MigrateMemObjects " << std::endl;
@@ -262,10 +262,10 @@ void *worker(void *data)
                 // only migrate date from HOST to Device.
                 // Force pre-allocation (or copying) of the CPUBuffers for this device:
                 for (int i = 0; i < num_mem_objects; i++) {
-		    mem_objects[i]->allocate(device);
-		}
-		break;
-	    }
+                    pobj(mem_objects[i])->allocate(device);
+                }
+                break;
+            }
 
             default:
                 break;

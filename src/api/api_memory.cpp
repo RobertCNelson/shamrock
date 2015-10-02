@@ -67,17 +67,19 @@ clCreateBuffer(cl_context   d_context,
         return 0;
     }
 
-    return (cl_mem)buf;
+    return desc(buf);
 }
 
 cl_mem
-clCreateSubBuffer(cl_mem                buffer,
+clCreateSubBuffer(cl_mem                d_buffer,
                   cl_mem_flags          flags,
                   cl_buffer_create_type buffer_create_type,
                   const void *          buffer_create_info,
                   cl_int *              errcode_ret)
 {
     cl_int dummy_errcode;
+    // code below seems to be expecting a Coal::Buffer *, so convert to such:
+    Coal::Buffer * buffer = (Coal::Buffer *)pobj(d_buffer);
 
     if (!errcode_ret)
         errcode_ret = &dummy_errcode;
@@ -112,7 +114,7 @@ clCreateSubBuffer(cl_mem                buffer,
 
     *errcode_ret = CL_SUCCESS;
 
-    Coal::SubBuffer *buf = new Coal::SubBuffer((Coal::Buffer *)buffer,
+    Coal::SubBuffer *buf = new Coal::SubBuffer(buffer,
                                                region->origin, region->size,
                                                flags, errcode_ret);
 
@@ -122,7 +124,7 @@ clCreateSubBuffer(cl_mem                buffer,
         return 0;
     }
 
-    return (cl_mem)buf;
+    return desc(buf);
 }
 
 cl_mem
@@ -153,12 +155,12 @@ clCreateImage(cl_context              d_context,
 
     /* Just pass on to corresponding clCreateImage2D or clCreateImage3D functions: */
     if (image_depth == 1) {
-        image = clCreateImage2D(context, flags, image_format, image_width, image_height, image_row_pitch,
-                                host_ptr, errcode_ret);
+        image = clCreateImage2D(context, flags, image_format, image_width, image_height,
+                   image_row_pitch, host_ptr, errcode_ret);
     }
     else {
-        image = clCreateImage3D(context, flags, image_format, image_width, image_height, image_depth,
-                                image_row_pitch, image_slice_pitch, host_ptr, errcode_ret);
+        image = clCreateImage3D(context, flags, image_format, image_width, image_height,
+                   image_depth, image_row_pitch, image_slice_pitch, host_ptr, errcode_ret);
     }
     return image;
 }
@@ -198,7 +200,7 @@ clCreateImage2D(cl_context              d_context,
         return 0;
     }
 
-    return (cl_mem)image;
+    return desc(image);
 }
 
 cl_mem
@@ -238,12 +240,14 @@ clCreateImage3D(cl_context              d_context,
         return 0;
     }
 
-    return (cl_mem)image;
+    return desc(image);
 }
 
 cl_int
-clRetainMemObject(cl_mem memobj)
+clRetainMemObject(cl_mem d_memobj)
 {
+    auto memobj = pobj(d_memobj);
+
     if (!memobj->isA(Coal::Object::T_MemObject))
         return CL_INVALID_MEM_OBJECT;
 
@@ -253,8 +257,10 @@ clRetainMemObject(cl_mem memobj)
 }
 
 cl_int
-clReleaseMemObject(cl_mem memobj)
+clReleaseMemObject(cl_mem d_memobj)
 {
+    auto memobj = pobj(d_memobj);
+
     if (!memobj->isA(Coal::Object::T_MemObject))
         return CL_INVALID_MEM_OBJECT;
 
@@ -415,12 +421,14 @@ clGetSupportedImageFormats(cl_context           d_context,
 }
 
 cl_int
-clGetMemObjectInfo(cl_mem           memobj,
+clGetMemObjectInfo(cl_mem           d_memobj,
                    cl_mem_info      param_name,
                    size_t           param_value_size,
                    void *           param_value,
                    size_t *         param_value_size_ret)
 {
+    auto memobj = pobj(d_memobj);
+
     if (!memobj->isA(Coal::Object::T_MemObject))
         return CL_INVALID_MEM_OBJECT;
 
@@ -429,12 +437,13 @@ clGetMemObjectInfo(cl_mem           memobj,
 }
 
 cl_int
-clGetImageInfo(cl_mem           image,
+clGetImageInfo(cl_mem           d_image,
                cl_image_info    param_name,
                size_t           param_value_size,
                void *           param_value,
                size_t *         param_value_size_ret)
 {
+    auto image = pobj(d_image);
     if (!image->isA(Coal::Object::T_MemObject) ||
             (image->type() != Coal::MemObject::Image2D &&
              image->type() != Coal::MemObject::Image3D))
@@ -447,11 +456,13 @@ clGetImageInfo(cl_mem           image,
 }
 
 cl_int
-clSetMemObjectDestructorCallback(cl_mem memobj,
+clSetMemObjectDestructorCallback(cl_mem d_memobj,
                                  void   (CL_CALLBACK *pfn_notify)(cl_mem memobj,
                                                                   void *user_data),
                                  void * user_data)
 {
+    auto memobj = pobj(d_memobj);
+
     if (!memobj->isA(Coal::Object::T_MemObject))
         return CL_INVALID_MEM_OBJECT;
 

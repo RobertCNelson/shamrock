@@ -115,7 +115,7 @@ MemObject::~MemObject()
     {
         dtor_callback_t callback;
         if (p_dtor_callback_stack.pop(callback))
-            callback.first((cl_mem)this, callback.second);
+	    callback.first(desc(this), callback.second);
     }
 
     if (p_devicebuffers)
@@ -378,14 +378,14 @@ cl_int MemObject::info(cl_mem_info param_name,
             if (type() != SubBuffer)
                 SIMPLE_ASSIGN(cl_mem, 0)
             else
-                SIMPLE_ASSIGN(cl_mem, subbuf->parent());
+                SIMPLE_ASSIGN(cl_mem, desc(subbuf->parent()));
             break;
 
         case CL_MEM_OFFSET:
             if (type() != SubBuffer)
-                SIMPLE_ASSIGN(cl_mem, 0)
+                SIMPLE_ASSIGN(size_t, 0)
             else
-                SIMPLE_ASSIGN(cl_mem, subbuf->offset());
+                SIMPLE_ASSIGN(size_t, subbuf->offset());
             break;
 
         default:
@@ -500,7 +500,7 @@ SubBuffer::SubBuffer(class Buffer *parent, size_t offset, size_t size,
 : MemObject((Context *)parent->parent(), flags, 0, errcode_ret), p_offset(offset),
   p_size(size), p_parent(parent)
 {
-    clRetainMemObject((cl_mem) p_parent);
+    clRetainMemObject(desc(p_parent));
 
     if (size == 0)
     {

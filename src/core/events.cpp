@@ -56,7 +56,7 @@ BufferEvent::BufferEvent(CommandQueue *parent,
 : Event(parent, CL_QUEUED, num_events_in_wait_list, event_wait_list, errcode_ret),
   p_buffer(buffer)
 {
-    clRetainMemObject((cl_mem) p_buffer);
+    clRetainMemObject(desc(p_buffer));
 
     if (*errcode_ret != CL_SUCCESS) return;
 
@@ -103,7 +103,7 @@ BufferEvent::BufferEvent(CommandQueue *parent,
 
 BufferEvent::~BufferEvent()
 {
-    clReleaseMemObject((cl_mem) p_buffer);
+    clReleaseMemObject(desc(p_buffer));
 }
 
 MemObject *BufferEvent::buffer() const
@@ -431,7 +431,7 @@ CopyBufferEvent::CopyBufferEvent(CommandQueue *parent,
               errcode_ret), p_destination(destination), p_src_offset(src_offset),
   p_dst_offset(dst_offset), p_cb(cb)
 {
-    clRetainMemObject((cl_mem) p_destination);
+    clRetainMemObject(desc(p_destination));
 
     if (*errcode_ret != CL_SUCCESS) return;
 
@@ -483,7 +483,7 @@ CopyBufferEvent::CopyBufferEvent(CommandQueue *parent,
 
 CopyBufferEvent::~CopyBufferEvent()
 {
-    clReleaseMemObject((cl_mem) p_destination);
+    clReleaseMemObject(desc(p_destination));
 }
 
 MemObject *CopyBufferEvent::source() const
@@ -587,7 +587,7 @@ NativeKernelEvent::NativeKernelEvent(CommandQueue *parent,
                                      void *args,
                                      size_t cb_args,
                                      cl_uint num_mem_objects,
-                                     const MemObject **mem_list,
+                                     const cl_mem *mem_list,
                                      const void **args_mem_loc,
                                      cl_uint num_events_in_wait_list,
                                      const cl_event *event_wait_list,
@@ -665,7 +665,7 @@ NativeKernelEvent::NativeKernelEvent(CommandQueue *parent,
         // Replace memory objects with global pointers
         for (cl_uint i=0; i<num_mem_objects; ++i)
         {
-            const MemObject *buffer = mem_list[i];
+            const MemObject *buffer = pobj(mem_list[i]);
             const char *loc = (const char *)args_mem_loc[i];
 
             if (!buffer)
@@ -729,7 +729,7 @@ KernelEvent::KernelEvent(CommandQueue *parent,
         if (a->kind() == Kernel::Arg::Buffer && a->file() != Kernel::Arg::Local)
         {
             MemObject *buffer = *(MemObject **)(a->value(0));
-            clRetainMemObject((cl_mem)buffer);
+            clRetainMemObject(desc(buffer));
         }
     }
 
@@ -955,7 +955,7 @@ KernelEvent::~KernelEvent()
         if (a->kind() == Kernel::Arg::Buffer && a->file() != Kernel::Arg::Local)
         {
             MemObject *buffer = *(MemObject **)(a->value(0));
-            clReleaseMemObject((cl_mem)buffer);
+            clReleaseMemObject(desc(buffer));
         }
     }
     clReleaseKernel(desc(p_kernel));
@@ -1619,7 +1619,7 @@ Event::Type MarkerEvent::type() const
 
 MigrateMemObjectsEvent::MigrateMemObjectsEvent(CommandQueue *parent,
                                  cl_uint                num_mem_objects,
-                                 const Coal::MemObject **mem_objects,
+                                 const cl_mem *         mem_objects,
                                  cl_mem_migration_flags flags,
                                  cl_uint num_events_in_wait_list,
                                  const cl_event *event_wait_list,
@@ -1642,9 +1642,9 @@ MigrateMemObjectsEvent::MigrateMemObjectsEvent(CommandQueue *parent,
     Context *ctx = (Context *)parent->parent();
     for (int i = 0; i < num_mem_objects; i++)
     {
-        if (!mem_objects[i]->isA(Coal::Object::T_MemObject))
+        if (!pobj(mem_objects[i])->isA(Coal::Object::T_MemObject))
 	    { *errcode_ret = CL_INVALID_MEM_OBJECT; break; }
-        else if (ctx != (Context *)mem_objects[i]->parent())
+        else if (ctx != (Context *)pobj(mem_objects[i])->parent())
 	    { *errcode_ret = CL_INVALID_CONTEXT; break; }
     }
 }
@@ -1654,7 +1654,7 @@ cl_uint MigrateMemObjectsEvent::num_mem_objects() const
     return p_num_mem_objects;
 }
 
-const Coal::MemObject ** MigrateMemObjectsEvent::mem_objects() const
+const cl_mem * MigrateMemObjectsEvent::mem_objects() const
 {
     return p_mem_objects;
 }
