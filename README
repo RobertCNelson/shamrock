@@ -19,6 +19,7 @@ libboost-all-dev
 libtinfo-dev
 mesa-common-dev
 python 2.6+, and not greater or equal to v 3.0.
+opencl-headers
 
 BUILD
 =====

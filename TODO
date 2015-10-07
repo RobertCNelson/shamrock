@@ -5,32 +5,22 @@ Things To Do:
 
    Update to latest common code from the TI repo.
 
-2. Add ICD support
-
-   Adding ICD support requires embedding an ICD Dispatch structure
-   into each public OpenCL object, and registering the vendor's
-   implementation with the system so an ICD loader can find and invoke it.
-
-   Though the effort does not appear too difficult, the payoff is really
-   when there are other ICD-compatible OpenCL drivers for other
-   devices (GPUs, DSPs) available with which to run concurrently.
-
-3. Merge TI OpenCL DSP Device support from git.ti.com/opencl.
+2. Merge TI OpenCL DSP Device support from git.ti.com/opencl.
 
    Get the CPU and DSP device support to act as plugins to a common
    framework, so that they may coexist.
 
-4. Builtins:
+3. Builtins:
 
    The current clc.h has its roots in LLVM libclc, but has diverged.  It
    may be interesting to resync with that project, if those builtins
    actually pass the Khronos tests.
 
-5. Update to OpenCL v 2.0
+4. Update to OpenCL v 2.0
 
    An HSA compliant platform would benefit this effort.
 
-6. Move to SPIR, or SPIR-V.
+5. Move to SPIR, or SPIR-V.
 
    Once a SPIR to ARM backend becomes available, could move to SPIR as a more
    standard IR.
